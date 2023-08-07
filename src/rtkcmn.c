@@ -147,7 +147,7 @@
 #include <stdarg.h>
 #include <ctype.h>
 #include <errno.h>
-#ifndef WIN32
+#ifndef _WIN32
 #include <dirent.h>
 #include <time.h>
 #include <sys/time.h>

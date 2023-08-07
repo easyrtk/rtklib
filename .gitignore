@@ -9,3 +9,15 @@ Debug
 Debug_Build
 __history
 __astcache
+
+.vscode/
+
+.vs
+
+x64/
+
+*.vcxproj.user
+
+*.pdb
+
+*.exe

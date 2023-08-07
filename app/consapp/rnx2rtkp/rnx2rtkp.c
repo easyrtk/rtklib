@@ -103,7 +103,8 @@ int main(int argc, char **argv)
     
     prcopt.mode  =PMODE_KINEMA;
     prcopt.navsys=0;
-    prcopt.refpos=1;
+    prcopt.nf=0;
+    prcopt.refpos=3; /* prefer to use rinex header coordinate */
     prcopt.glomodear=1;
     solopt.timef=0;
     sprintf(solopt.prog ,"%s ver.%s %s",PROGNAME,VER_RTKLIB,PATCH_LEVEL);
@@ -178,7 +179,10 @@ int main(int argc, char **argv)
         else if (n<MAXFILE) infile[n++]=argv[i];
     }
     if (!prcopt.navsys) {
-        prcopt.navsys=SYS_GPS|SYS_GLO;
+        prcopt.navsys=SYS_GPS|SYS_GAL|SYS_CMP; /* do not include GLO */
+    }
+    if (!prcopt.nf) {
+        prcopt.nf=3; /* L1+L2+L5 */
     }
     if (n<=0) {
         showmsg("error : no input file");
