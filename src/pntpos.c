@@ -296,6 +296,8 @@ static int rescode(int iter, const obsd_t *obs, int n, const double *rs,
             if (!tropcorr(time,nav,pos,azel+i*2,opt->tropopt,&dtrp,&vtrp)) {
                 continue;
             }
+        } else {
+            dion=dtrp=vion=vtrp=0;
         }
         /* psendorange with code bias correction */
         if ((P=prange(obs+i,nav,opt,&vmeas))==0.0) continue;
