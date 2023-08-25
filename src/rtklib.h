@@ -1503,9 +1503,9 @@ EXPORT double eph2clk (gtime_t time, const eph_t  *eph);
 EXPORT double geph2clk(gtime_t time, const geph_t *geph);
 EXPORT double seph2clk(gtime_t time, const seph_t *seph);
 EXPORT void eph2pos (gtime_t time, const eph_t  *eph,  double *rs, double *dts,
-                     double *var);
+                     double *var, double *age);
 EXPORT void geph2pos(gtime_t time, const geph_t *geph, double *rs, double *dts,
-                     double *var);
+                     double *var, double* age);
 EXPORT void seph2pos(gtime_t time, const seph_t *seph, double *rs, double *dts,
                      double *var);
 EXPORT int  peph2pos(gtime_t time, int sat, const nav_t *nav, int opt,
@@ -1514,9 +1514,9 @@ EXPORT void satantoff(gtime_t time, const double *rs, int sat, const nav_t *nav,
                       double *dant);
 EXPORT int  satpos(gtime_t time, gtime_t teph, int sat, int ephopt,
                    const nav_t *nav, double *rs, double *dts, double *var,
-                   int *svh);
+                   int *svh, double *age);
 EXPORT void satposs(gtime_t time, const obsd_t *obs, int n, const nav_t *nav,
-                    int sateph, double *rs, double *dts, double *var, int *svh);
+                    int sateph, double *rs, double *dts, double *var, int *svh, double *age);
 EXPORT void setseleph(int sys, int sel);
 EXPORT int  getseleph(int sys);
 EXPORT void readsp3(const char *file, nav_t *nav, int opt);

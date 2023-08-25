@@ -1198,7 +1198,7 @@ static double intpres(gtime_t time, const obsd_t *obs, int n, const nav_t *nav,
                       rtk_t *rtk, double *y)
 {
     static obsd_t obsb[MAXOBS];
-    static double yb[MAXOBS*NFREQ*2],rs[MAXOBS*6],dts[MAXOBS*2],var[MAXOBS];
+    static double yb[MAXOBS*NFREQ*2],rs[MAXOBS*6],dts[MAXOBS*2],var[MAXOBS],age[MAXOBS]={0};
     static double e[MAXOBS*3],azel[MAXOBS*2],freq[MAXOBS*NFREQ];
     static int nb=0,svh[MAXOBS*2];
     prcopt_t *opt=&rtk->opt;
@@ -1214,7 +1214,7 @@ static double intpres(gtime_t time, const obsd_t *obs, int n, const nav_t *nav,
     ttb=timediff(time,obsb[0].time);
     if (fabs(ttb)>opt->maxtdiff*2.0||ttb==tt) return tt;
     
-    satposs(time,obsb,nb,nav,opt->sateph,rs,dts,var,svh);
+    satposs(time,obsb,nb,nav,opt->sateph,rs,dts,var,svh,age);
     
     if (!zdres(1,obsb,nb,rs,dts,var,svh,nav,rtk->rb,opt,1,yb,e,azel,freq)) {
         return tt;
@@ -1462,7 +1462,7 @@ static int relpos(rtk_t *rtk, const obsd_t *obs, int nu, int nr,
 {
     prcopt_t *opt=&rtk->opt;
     gtime_t time=obs[0].time;
-    double *rs,*dts,*var,*y,*e,*azel,*freq,*v,*H,*R,*xp,*Pp,*xa,*bias,dt;
+    double *rs,*dts,*var,*y,*e,*azel,*freq,*v,*H,*R,*xp,*Pp,*xa,*bias,dt,age[MAXOBS]={0};
     int i,j,f,n=nu+nr,ns,ny,nv,sat[MAXSAT],iu[MAXSAT],ir[MAXSAT],niter;
     int info,vflg[MAXOBS*NFREQ*2+1],svh[MAXOBS*2];
     int stat=rtk->opt.mode<=PMODE_DGPS?SOLQ_DGPS:SOLQ_FLOAT;
@@ -1481,8 +1481,47 @@ static int relpos(rtk_t *rtk, const obsd_t *obs, int nu, int nr,
         for (j=1;j<NFREQ;j++) rtk->ssat[i].snr [j]=0;
     }
     /* satellite positions/clocks */
-    satposs(time,obs,n,nav,opt->sateph,rs,dts,var,svh);
-    
+    satposs(time,obs,n,nav,opt->sateph,rs,dts,var,svh,age);
+#ifdef _WIN32
+    static FILE* fSAT_POS = NULL;
+    if (!fSAT_POS)
+    {
+        if (n > 0)
+        {
+            double ep[6] = { 0 };
+            time2epoch(obs->time, ep);
+            char buffer[255] = { 0 };
+            sprintf(buffer, "%04i-%02i-%02i-%02i-%02i-%02i-satpos.csv", (int)ep[0], (int)ep[1], (int)ep[2], (int)ep[3], (int)ep[4], (int)ep[5]);
+            fSAT_POS = fopen(buffer, "w");
+        }
+    }
+    if (fSAT_POS)
+    {
+        obsd_t* obsd = obs + 0;
+        double* spv = rs;
+        double* sdt = dts;
+        double* svar = var;
+        int* ssvh = svh;
+        double* sage = age;
+        for (i = 0, obsd = obs+i; i < n; ++i, ++obsd)
+        {
+            int wk = 0;
+            double ws = time2gpst(obsd->time, &wk);
+            int prn = 0;
+            int sys = satsys(obsd->sat, &prn);
+            fprintf(fSAT_POS, "%04i,%10.3f,%4i,%3i,%2i,%3i,", wk, ws, obsd->rcv, obsd->sat, sys, prn);
+            fprintf(fSAT_POS, "%14.4f,%14.4f,%14.4f,%10.4f,%10.4f,%10.4f,", spv[0], spv[1], spv[2], spv[3], spv[4], spv[5]);
+            fprintf(fSAT_POS, "%14.4f,%10.4f,", sdt[0] * CLIGHT, sdt[1] * CLIGHT);
+            fprintf(fSAT_POS, "%7.2f,%i,%10.3f\n", *svar, *ssvh, *sage);
+            spv += 6;
+            sdt += 2;
+            svar++;
+            ssvh++;
+            sage++;
+        }
+        fflush(fSAT_POS);
+    }
+#endif
     /* UD (undifferenced) residuals for base station */
     if (!zdres(1,obs+nu,nr,rs+nu*6,dts+nu*2,var+nu,svh+nu,nav,rtk->rb,opt,1,
                y+nu*nf*2,e+nu*3,azel+nu*2,freq+nu*nf)) {
