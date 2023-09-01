@@ -124,7 +124,7 @@ static int fcn_glo(int sat, rtcm_t *rtcm)
     if (rtcm->nav.glo_fcn[prn-1]>0) { /* fcn+8 (0: no data) */
         return rtcm->nav.glo_fcn[prn-1]-8+7;
     }
-    return -1;
+    return get_glo_default_frq(prn) + 7; /* -1 is wrong */
 }
 /* lock time indicator (ref [17] table 3.4-2) --------------------------------*/
 static int to_lock(int lock)

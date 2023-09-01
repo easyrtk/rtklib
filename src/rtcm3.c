@@ -2054,7 +2054,7 @@ static void save_msm_obs(rtcm_t *rtcm, int sys, msm_h_t *h, const double *r,
         }
         fcn=0;
         if (sys==SYS_GLO) {
-            fcn=-8; /* no glonass fcn info */
+            fcn=get_glo_default_frq(prn); /* start with default glonass fcn info */
             if (ex&&ex[i]<=13) {
                 fcn=ex[i]-7;
                 if (!rtcm->nav.glo_fcn[prn-1]) {

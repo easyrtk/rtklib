@@ -739,6 +739,15 @@ extern double code2freq(int sys, uint8_t code, int fcn)
     }
     return freq;
 }
+/* default glonass frequency table */
+static int default_glo_frq_table[] = { 1, -4, 05, 06, 01, -4, 05, 06, -2, -7, 00, -1, -2, -7, 00, -1, 04, -3, 03, 02, 04, -3, 03, 02, 0, -5 };
+#ifndef MAX_GLO_PRN
+#define MAX_GLO_PRN (sizeof(default_glo_frq_table)/sizeof(int))
+#endif
+extern int get_glo_default_frq(int prn)
+{
+    return prn > 0 && prn <= MAX_GLO_PRN ? default_glo_frq_table[prn - 1] : -8;
+}
 /* satellite and obs code to frequency -----------------------------------------
 * convert satellite and obs code to carrier frequency
 * args   : int    sat       I   satellite number
@@ -753,7 +762,7 @@ extern double sat2freq(int sat, uint8_t code, const nav_t *nav)
     sys=satsys(sat,&prn);
     
     if (sys==SYS_GLO) {
-        if (!nav) return 0.0;
+        if (!nav) return ((fcn = get_glo_default_frq(prn)) == -8) ? 0.0 : code2freq(sys, code, fcn);
         for (i=0;i<nav->ng;i++) {
             if (nav->geph[i].sat==sat) break;
         }
@@ -763,7 +772,7 @@ extern double sat2freq(int sat, uint8_t code, const nav_t *nav)
         else if (nav->glo_fcn[prn-1]>0) {
             fcn=nav->glo_fcn[prn-1]-8;
         }
-        else return 0.0;
+        else return ((fcn = get_glo_default_frq(prn)) == -8) ? 0.0 : code2freq(sys, code, fcn);
     }
     return code2freq(sys,code,fcn);
 }
