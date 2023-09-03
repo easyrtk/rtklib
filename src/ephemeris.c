@@ -772,9 +772,9 @@ extern void satposs(gtime_t teph, const obsd_t *obs, int n, const nav_t *nav,
         var[i]=0.0; svh[i]=0;
         
         /* search any pseudorange */
-        for (j=0,pr=0.0;j<NFREQ;j++) if ((pr=obs[i].P[j])!=0.0) break;
+        for (j=0,pr=0.0;j<(NFREQ+NEXOBS);j++) if ((pr=obs[i].P[j])!=0.0) break;
         
-        if (j>=NFREQ) {
+        if (j>=(NFREQ+NEXOBS)) {
             trace(3,"no pseudorange %s sat=%2d\n",time_str(obs[i].time,3),obs[i].sat);
             continue;
         }

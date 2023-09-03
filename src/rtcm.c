@@ -263,7 +263,7 @@ extern int input_rtcm2(rtcm_t *rtcm, uint8_t data)
 extern int input_rtcm3(rtcm_t *rtcm, uint8_t data)
 {
     trace(5,"input_rtcm3: data=%02x\n",data);
-    
+    rtcm->type=rtcm->subtype=0;
     /* synchronize frame */
     if (rtcm->nbyte==0) {
         if (data!=RTCM3PREAMB) return 0;

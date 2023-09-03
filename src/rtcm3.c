@@ -2463,7 +2463,7 @@ static int decode_type4073(rtcm_t *rtcm)
     int i=24+12,subtype;
     
     subtype=getbitu(rtcm->buff,i,4); i+=4;
-    
+    rtcm->subtype=subtype;
     if (rtcm->outtype) {
         sprintf(rtcm->msgtype+strlen(rtcm->msgtype)," subtype=%d",subtype);
     }
@@ -2481,7 +2481,7 @@ static int decode_type4076(rtcm_t *rtcm)
     }
     ver    =getbitu(rtcm->buff,i,3); i+=3;
     subtype=getbitu(rtcm->buff,i,8); i+=8;
-    
+    rtcm->subtype=subtype;
     if (rtcm->outtype) {
         sprintf(rtcm->msgtype+strlen(rtcm->msgtype)," ver=%d subtype=%3d",ver,
                 subtype);
@@ -2538,7 +2538,7 @@ extern int decode_rtcm3(rtcm_t *rtcm)
 {
     double tow;
     int ret=0,type=getbitu(rtcm->buff,24,12),week;
-    
+    rtcm->type=type;
     trace(3,"decode_rtcm3: len=%3d type=%d\n",rtcm->len,type);
     
     if (rtcm->outtype) {

@@ -1594,7 +1594,7 @@ extern gtime_t timeget(void)
 {
     gtime_t time;
     double ep[6]={0};
-#ifdef WIN32
+#ifdef _WIN32
     SYSTEMTIME ts;
     
     GetSystemTime(&ts); /* utc */
@@ -1856,7 +1856,7 @@ extern int adjgpsweek(int week)
 *-----------------------------------------------------------------------------*/
 extern uint32_t tickget(void)
 {
-#ifdef WIN32
+#ifdef _WIN32
     return (uint32_t)timeGetTime();
 #else
     struct timespec tp={0};
@@ -1875,7 +1875,7 @@ extern uint32_t tickget(void)
     gettimeofday(&tv,NULL);
     return tv.tv_sec*1000u+tv.tv_usec/1000u;
 #endif
-#endif /* WIN32 */
+#endif /* _WIN32 */
 }
 /* sleep ms --------------------------------------------------------------------
 * sleep ms
@@ -1884,7 +1884,7 @@ extern uint32_t tickget(void)
 *-----------------------------------------------------------------------------*/
 extern void sleepms(int ms)
 {
-#ifdef WIN32
+#ifdef _WIN32
     if (ms<5) Sleep(1); else Sleep(ms);
 #else
     struct timespec ts;
@@ -3246,7 +3246,7 @@ extern void traceb  (int level, const uint8_t *p, int n) {}
 *-----------------------------------------------------------------------------*/
 extern int execcmd(const char *cmd)
 {
-#ifdef WIN32
+#ifdef _WIN32
     PROCESS_INFORMATION info;
     STARTUPINFO si={0};
     DWORD stat;
@@ -3281,7 +3281,7 @@ extern int expath(const char *path, char *paths[], int nmax)
 {
     int i,j,n=0;
     char tmp[1024];
-#ifdef WIN32
+#ifdef _WIN32
     WIN32_FIND_DATA file;
     HANDLE h;
     char dir[1024]="",*p;
@@ -3346,7 +3346,7 @@ static int mkdir_r(const char *dir)
 {
     char pdir[1024],*p;
 
-#ifdef WIN32
+#ifdef _WIN32
     HANDLE h;
     WIN32_FIND_DATA data;
     
@@ -3994,7 +3994,7 @@ extern int rtk_uncompress(const char *file, char *uncfile)
         strcpy(uncfile,tmpfile); uncfile[p-tmpfile]='\0';
         strcpy(buff,tmpfile);
         fname=buff;
-#ifdef WIN32
+#ifdef _WIN32
         if ((p=strrchr(buff,'\\'))) {
             *p='\0'; dir=fname; fname=p+1;
         }
