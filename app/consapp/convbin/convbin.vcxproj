@@ -27,6 +27,7 @@
     <ClCompile Include="..\..\..\src\rcvraw.c" />
     <ClCompile Include="..\..\..\src\rcv\binex.c" />
     <ClCompile Include="..\..\..\src\rcv\crescent.c" />
+    <ClCompile Include="..\..\..\src\rcv\hemisphere.c" />
     <ClCompile Include="..\..\..\src\rcv\javad.c" />
     <ClCompile Include="..\..\..\src\rcv\novatel.c" />
     <ClCompile Include="..\..\..\src\rcv\nvs.c" />
@@ -156,7 +157,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>TRACE;ENAGLO;ENAQZS;ENAGAL;ENACMP;ENAIRN;NFREQ=7;NEXOBS=3;_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../../../src</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../src;/../../../src/rcv</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -173,7 +174,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>TRACE;ENAGLO;ENAQZS;ENAGAL;ENACMP;ENAIRN;NFREQ=7;NEXOBS=3;_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../../../src</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../src;/../../../src/rcv</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>

@@ -29,10 +29,11 @@
 *                           udpate reference [3]
 *-----------------------------------------------------------------------------*/
 #include "rtklib.h"
-
+#include "hemisphere.h"
 #define CRESSYNC    "$BIN"      /* hemis bin sync code */
 
 #define ID_CRESPOS   1          /* hemis msg id: bin 1 position/velocity */
+#define ID_CRESOBS   16         /* hemis msg id: bin 16 observation */
 #define ID_CRESGLOEPH 65        /* hemis msg id: bin 65 glonass ephemeris */
 #define ID_CRESGLORAW 66        /* hemis msg id: bin 66 glonass L1/L2 phase and code */
 #define ID_CRESRAW2 76          /* hemis msg id: bin 76 dual-freq raw */
@@ -524,7 +525,7 @@ static int decode_cresgloeph(raw_t *raw)
 /* decode crescent raw message -----------------------------------------------*/
 static int decode_cres(raw_t *raw)
 {
-    int type=U2(raw->buff+4);
+    int type=U2(raw->buff+4),ret=0;
     
     trace(3,"decode_cres: type=%2d len=%d\n",type,raw->len);
     
@@ -536,14 +537,15 @@ static int decode_cres(raw_t *raw)
         sprintf(raw->msgtype,"HEMIS %2d (%4d):",type,raw->len);
     }
     switch (type) {
-        case ID_CRESPOS   : return decode_crespos(raw);
+        case ID_CRESPOS: { ret = readMsg1(raw->buff, 8, &raw->sta); if (raw->obs.n > 0) raw->time = raw->obs.data[0].time; return ret; }/*return decode_crespos(raw);*/
         case ID_CRESRAW   : return decode_cresraw(raw);
         case ID_CRESRAW2  : return decode_cresraw2(raw);
-        case ID_CRESEPH   : return decode_creseph(raw);
+        //case ID_CRESEPH   : return decode_creseph(raw);
         case ID_CRESWAAS  : return decode_creswaas(raw);
         case ID_CRESIONUTC: return decode_cresionutc(raw);
-        case ID_CRESGLORAW: return decode_cresgloraw(raw);
-        case ID_CRESGLOEPH: return decode_cresgloeph(raw);
+        //case ID_CRESGLORAW: return decode_cresgloraw(raw);
+        //case ID_CRESGLOEPH: return decode_cresgloeph(raw);
+        case ID_CRESOBS: { ret = readGnssObs(raw->buff, 8, &raw->obs); if (raw->obs.n > 0) raw->time = raw->obs.data[0].time; return ret; }
     }
     return 0;
 }
