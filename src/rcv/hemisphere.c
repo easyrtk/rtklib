@@ -1469,12 +1469,14 @@ extern int readGnssObs(unsigned char* buff, int nStart, obs_t *obs)
 			{
 				nSVID -= SBAS_BASENO_INTERNAL2;
 				nSystem = SYS_SBS;
+				continue;
 			}
 			else if (nSVID >= SBAS_BASENO_INTERNAL1_LOWER &&
 				nSVID <= SBAS_BASENO_INTERNAL1_UPPER)
 			{
 				nSVID -= SBAS_BASENO_INTERNAL1;
 				nSystem = SYS_SBS;
+				continue;
 			}
 			else
 			{
@@ -1576,7 +1578,7 @@ extern int readGnssObs(unsigned char* buff, int nStart, obs_t *obs)
 
 				if (obs->data[obs->n].SNR[nL] == 0.0)
 				{
-					obs->data[obs->n].SNR[nL] = (unsigned char)(block.dSNR * 4.0);
+					obs->data[obs->n].SNR[nL] = (block.dSNR /SNR_UNIT);
 				}
 				obs->data[obs->n].code[nL] = codeType;
 				obs->data[obs->n].time = gpst2time(item.m_wWeek, item.m_dTow);
@@ -1608,7 +1610,7 @@ extern int readGnssObs(unsigned char* buff, int nStart, obs_t *obs)
 			}
 			if (obs->data[Index].SNR[nL] == 0.0)
 			{
-				obs->data[Index].SNR[nL] = (unsigned char)(block.dSNR * 4.0);
+				obs->data[Index].SNR[nL] = (block.dSNR / SNR_UNIT);
 			}
 			obs->data[Index].code[nL] = codeType;
 			obs->data[Index].time = gpst2time(item.m_wWeek, item.m_dTow);
