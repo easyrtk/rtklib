@@ -1,16 +1,16 @@
 #include "rtklib.h"
 
 static const char rcsid[] = "$Id:$";
-
+#ifndef _WIN32
 typedef char                CHAR;
-typedef int                 BOOL;
-typedef unsigned char       BYTE;
-typedef short               SHORT;
-typedef unsigned short      USHORT;
-typedef int                 INT;
-typedef unsigned int        UINT;
-typedef long                LONG;
-typedef unsigned long       ULONG;
+typedef int8_t              BOOL;
+typedef uint8_t             BYTE;
+typedef int16_t             SHORT;
+typedef uint16_t            USHORT;
+typedef int32_t             INT;
+typedef uint32_t            UINT;
+typedef int32_t             LONG;
+typedef uint32_t            ULONG;
 typedef uint64_t            LONG64;
 typedef uint64_t            ULONG64;
 
@@ -21,7 +21,7 @@ typedef uint64_t            ULONG64;
 #ifndef TRUE
 #define TRUE                1
 #endif
-
+#endif
 /* constants -----------------------------------------------------------------*/
 #define RTCM2PREAMB 0x66        /* rtcm ver.2 frame preamble */
 #define RTCM3PREAMB 0xD3        /* rtcm ver.3 frame preamble */
@@ -61,9 +61,9 @@ typedef uint64_t            ULONG64;
 
 #define SIX_HOUR_FIT 1                               /* For ephemeris age. */
 
-const long const_WeekBDS3ToGps = 1356;
-const long const_BDS13BitWeekRollover = 0x2000;
-const long lGPSSecMinusBeidouSec = 14;  // leap secon
+const int32_t const_WeekBDS3ToGps = 1356;
+const int32_t const_BDS13BitWeekRollover = 0x2000;
+const int32_t lGPSSecMinusBeidouSec = 14;  // leap secon
 
 const double dTwoPwrM8 = 3.90625E-3;
 const double dTwoPwrM9 = 1.953125E-3;
@@ -135,9 +135,9 @@ const double dTwoPwrM66 = 1.3552527156068805E-20;
 #define  GLO_MAX_NO     24
 //#define  CMP_MAX_NO     37
 #define  CMP_MAX_NO     63
-#define  SBS_MAX_NO     44   /* ÓÉ24¸ÄÎª44: 120~158,183~187 */
+#define  SBS_MAX_NO     44   /* ï¿½ï¿½24ï¿½ï¿½Îª44: 120~158,183~187 */
 #define  QZS_MAX_NO     20
-#define  GAL_MAX_NO     36   //ÓÉ20¸ÄÎª30
+#define  GAL_MAX_NO     36   //ï¿½ï¿½20ï¿½ï¿½Îª30
 #define  IMES_MAX_NO    1
 #define  NAVIC_MAX_NO   9/*8*/   //[2020/03/27]
 #define  SATE_TOTAL_NO  (GPS_MAX_NO+GLO_MAX_NO+CMP_MAX_NO+SBS_MAX_NO+QZS_MAX_NO+GAL_MAX_NO+IMES_MAX_NO+NAVIC_MAX_NO+1)
@@ -182,7 +182,7 @@ const double dTwoPwrM66 = 1.3552527156068805E-20;
 #define GPS_L2_MIN  9
 #define GPS_L2_MAX  18
 #define GPS_L5_MIN  19
-#define GPS_L5_MAX  21  /* ±ÜÃâÓÅÏÈ¼¶µ÷Õûµ¼ÖÂº¯Êý´íÎó */
+#define GPS_L5_MAX  21  /* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Âºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ */
 
 #define GLO_C1P 0
 #define GLO_C1C 1  /* priority:PC */
@@ -236,7 +236,7 @@ const double dTwoPwrM66 = 1.3552527156068805E-20;
 #define CMP_C8X 23
 #define CMP_SIGNAL_TOTAL 24
 
-#define CMP_B1_MIN  0    //304¸ñÊ½
+#define CMP_B1_MIN  0    //304ï¿½ï¿½Ê½
 #define CMP_B1_MAX  2
 #define CMP_B1C_MIN 16
 #define CMP_B1C_MAX 20
@@ -310,7 +310,7 @@ const double dTwoPwrM66 = 1.3552527156068805E-20;
 #define QZS_C6Z 19
 #define QZS_SIGNAL_TOTAL 20
 
-#define QZS_L1_MIN 0   //304¸ñÊ½
+#define QZS_L1_MIN 0   //304ï¿½ï¿½Ê½
 #define QZS_L1_MAX 4
 #define QZS_L2_MIN 5
 #define QZS_L2_MAX 8
@@ -319,7 +319,7 @@ const double dTwoPwrM66 = 1.3552527156068805E-20;
 #define QZS_L6_MIN 15
 #define QZS_L6_MAX 19
 
-#define IRN_C5C 0  //304¸ñÊ½
+#define IRN_C5C 0  //304ï¿½ï¿½Ê½
 #define IRN_C5A 1
 #define IRN_C5B 2
 #define IRN_C5X 3
@@ -329,15 +329,15 @@ const double dTwoPwrM66 = 1.3552527156068805E-20;
 #define IRN_C9X 7
 #define IRN_SIGNAL_TOTAL 8
 
-#define IRN_L5_MIN 0 //304¸ñÊ½
+#define IRN_L5_MIN 0 //304ï¿½ï¿½Ê½
 #define IRN_L5_MAX 3
 #define IRN_S_MIN  4
 #define IRN_S_MAX  7
 
-/* glonass Ô¤ÉèÆµÂÊÍ¨µÀ */
+/* glonass Ô¤ï¿½ï¿½Æµï¿½ï¿½Í¨ï¿½ï¿½ */
 static signed char g_acFreqChan[GLO_MAX_NO + 1] = { 100, 1, -4, 5, 6, 1, -4, 5, 6, -2, -7,
 	0, -1, -2, -7, 0, -1, 4, -3, 3, 2, 4, -3, 3, 2
-}; //5¡¢6ºÅÎÀÐÇÊÇ1¡¢-4»¹ÊÇ-7¡¢1£¿
+}; //5ï¿½ï¿½6ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½1ï¿½ï¿½-4ï¿½ï¿½ï¿½ï¿½-7ï¿½ï¿½1ï¿½ï¿½
 
 #define LIGHT_SPEED 2.99792458E8
 
@@ -579,16 +579,16 @@ typedef struct
 typedef struct
 {
 	double           m_dTow;                  // Time in seconds (8 bytes)
-	unsigned short   m_wWeek;                 // GPS Week Number (2 bytes)
-	unsigned short   m_wSpare1;               // spare 1 (zero)  (2 bytes)
+	uint16_t         m_wWeek;                 // GPS Week Number (2 bytes)
+	uint16_t         m_wSpare1;               // spare 1 (zero)  (2 bytes)
 
-	unsigned long    m_uPageCount; //[0-15] Spare bits
+	uint32_t         m_uPageCount; //[0-15] Spare bits
 								   //[16,17,18,19,20,21] Number of Pages = N
 								   //[22,23,24,25,26,27] Page Number [0...N-1]
 								   //[28,29,30,31] Spare bits
 								   // Bit mask of all signals included in the set of pages
 
-	unsigned long    m_uAllSignalsIncluded_01;  // bit 0  = GPS:L1CA included 
+	uint32_t         m_uAllSignalsIncluded_01;  // bit 0  = GPS:L1CA included 
 												// bit 1  = GPS:L2P included
 												// bit 2  = GPS:L2C included 
 												// bit 3  = GPS:L5 included
@@ -604,14 +604,14 @@ typedef struct
 												// bit 25 = BDS:B2I included 
 												// bit 26 = BDS:B3I included 
 												// bit 31:27 = spare
-	unsigned long    m_uAllSignalsIncluded_02;  // bit 0  = QZS:L1CA included 
+	uint32_t         m_uAllSignalsIncluded_02;  // bit 0  = QZS:L1CA included 
 												// bit 1  = spare
 												// bit 2  = QZS:L2C included 
 												// bit 3  = QZS:L5 included
 												// bit 4  = QZS:L1C included
 												// bit 31:5 = spare
 	SObsPacket       m_asObs[CHANNELS_gen];     // 16 sets of observations (16*12=192 bytes)
-	unsigned long    m_aulCodeMSBsPRN[CHANNELS_gen]; // array of 16, 32 bit words   (16*4=64 bytes)
+	uint32_t         m_aulCodeMSBsPRN[CHANNELS_gen]; // array of 16, 32 bit words   (16*4=64 bytes)
 													 // bit 7:0 (8 bits) = satellite PRN,
 													 //                  = 0 if no satellite
 													 // bit 12:8 (5 bits) = Log_Base_2(X+1)
@@ -621,7 +621,7 @@ typedef struct
 													 // bit 31:13 (19 bits) = upper 19 bits
 													 // of code pseudorange LSB = 256 meters
 													 //                     MSB = 67108864 meters
-	unsigned short  m_awChanSignalSYS[CHANNELS_gen]; // Array of 16, 16 bit words (32 bytes)
+	uint16_t         m_awChanSignalSYS[CHANNELS_gen]; // Array of 16, 16 bit words (32 bytes)
 													 //[15,14]  spare bits
 													 //[13] = 1 if GLONASS P-Code
 													 //[12,11,10,9,8] = Channel (0 is the first channel) for glonass
@@ -649,8 +649,8 @@ typedef struct// Hemis_MeasBlock
 
 	BOOL    bPhaseValid;
 
-	UINT    nPhase;  //23bitÏàÎ»
-	ULONG64 nPsr;    //35bitÎ±¾à
+	UINT    nPhase;  //23bitï¿½ï¿½Î»
+	ULONG64 nPsr;    //35bitÎ±ï¿½ï¿½
     /*
 	Hemis_MeasBlock()
 	{
@@ -918,13 +918,13 @@ static int UnifySignalType(int nSystem, BYTE bPcode, int *nSignalType, int *code
 		}
 		else if (*nSignalType == 2)
 		{
-			*nSignalType = GPS_C2S;  /* ½»»»L2¹Û²âÀàÐÍ?? *///½«GPS_C2CÐÞ¸ÄÎªGPS_C2XÐÞ¸Ä[2019/09/04]
+			*nSignalType = GPS_C2S;  /* ï¿½ï¿½ï¿½ï¿½L2ï¿½Û²ï¿½ï¿½ï¿½ï¿½ï¿½?? *///ï¿½ï¿½GPS_C2Cï¿½Þ¸ï¿½ÎªGPS_C2Xï¿½Þ¸ï¿½[2019/09/04]
 			nFreq = 2;
 			*codeType = 16;
 		}
 		else if (*nSignalType == 3)
 		{
-			*nSignalType = GPS_C5Q;//½«GPS_C5IÐÞ¸ÄÎªGPS_C5Q [2019/09/04]
+			*nSignalType = GPS_C5Q;//ï¿½ï¿½GPS_C5Iï¿½Þ¸ï¿½ÎªGPS_C5Q [2019/09/04]
 			nFreq = 3;
 			*codeType = 25;
 		}
@@ -1052,29 +1052,29 @@ static int UnifySignalType(int nSystem, BYTE bPcode, int *nSignalType, int *code
 
 		if (*nSignalType == 0)
 		{
-            *nSignalType = GAL_C1X;//½«GAL_C1CÐÞ¸ÄÎªGAL_C1X [2019/10/15]
+            *nSignalType = GAL_C1X;//ï¿½ï¿½GAL_C1Cï¿½Þ¸ï¿½ÎªGAL_C1X [2019/10/15]
 			nFreq = 0;
             *codeType = 12;
 		}
 		else if (*nSignalType == 1)
 		{
-            *nSignalType = GAL_C5X;//½«GAL_C5Q¸ÄÎªGAL_C5X [2019/10/15]
+            *nSignalType = GAL_C5X;//ï¿½ï¿½GAL_C5Qï¿½ï¿½ÎªGAL_C5X [2019/10/15]
 			nFreq = 1;
             *codeType = 26;
 		}
 		else if (*nSignalType == 2)
 		{
-            *nSignalType = GAL_C7X;//½«GAL_C7Q¸ÄÎªGAL_C7X [2019/10/15]
+            *nSignalType = GAL_C7X;//ï¿½ï¿½GAL_C7Qï¿½ï¿½ÎªGAL_C7X [2019/10/15]
 			nFreq = 2;
             *codeType = 29;
 		}
-		else if (*nSignalType == 3)//Ôö¼Ó[2019/05/30]
+		else if (*nSignalType == 3)//ï¿½ï¿½ï¿½ï¿½[2019/05/30]
 		{
             *nSignalType = GAL_C6C;
 			nFreq = 3;
             *codeType = 60;
 		}
-		else if (*nSignalType == 4)//Ôö¼Ó[2019/05/30]
+		else if (*nSignalType == 4)//ï¿½ï¿½ï¿½ï¿½[2019/05/30]
 		{
             *nSignalType = GAL_C8Q;
 			nFreq = 4;
@@ -1093,13 +1093,13 @@ static int UnifySignalType(int nSystem, BYTE bPcode, int *nSignalType, int *code
 		}
 		else if (*nSignalType == 2)
 		{
-            *nSignalType = QZS_C2X; /* L2C *///½«QZS_C2S¸ÄÎªQZS_C2X [2019/09/04]
+            *nSignalType = QZS_C2X; /* L2C *///ï¿½ï¿½QZS_C2Sï¿½ï¿½ÎªQZS_C2X [2019/09/04]
 			nFreq = 1;
             *codeType = 18;
 		}
 		else if (*nSignalType == 3)
 		{
-            *nSignalType = QZS_C5Q; /* L5 *///½«QZS_C5I×ª»»ÎªQZS_C5Q[2019/09/04] 
+            *nSignalType = QZS_C5Q; /* L5 *///ï¿½ï¿½QZS_C5I×ªï¿½ï¿½ÎªQZS_C5Q[2019/09/04] 
 			nFreq = 2;
             *codeType = 25;
 		}
@@ -1165,7 +1165,7 @@ static double GetWaveLength(int iSystem, int iSignalType, int iFreq /* = Invalid
 		{
 			dWaveLen = LIGHT_SPEED / (1246000000 + 437500.0*iFreq);
 		}
-		else if (iSignalType >= GLO_G1a_MIN && iSignalType <= GLO_G1a_MAX)  //304¸ñÊ½
+		else if (iSignalType >= GLO_G1a_MIN && iSignalType <= GLO_G1a_MAX)  //304ï¿½ï¿½Ê½
 		{
 			dWaveLen = LIGHT_SPEED / 1600995000.0;
 		}
@@ -1259,7 +1259,7 @@ static double GetWaveLength(int iSystem, int iSignalType, int iFreq /* = Invalid
 			dWaveLen = LIGHT_SPEED / 1278750000.0;
 		}
 	}
-	else if (iSystem == NAVIC_SYSTEM)//304¸ñÊ½[2020/03/27]
+	else if (iSystem == NAVIC_SYSTEM)//304ï¿½ï¿½Ê½[2020/03/27]
 	{
 		if (iSignalType >= IRN_L5_MIN && iSignalType <= IRN_L5_MAX)
 		{
@@ -1279,11 +1279,11 @@ void GetObsValue(int nSystem, SObsPacket item, int nSignal, Hemis_MeasBlock *Obs
 	int nSNR = item.CS_TT_W3_SNR & 0xFFF;
 	if (nSNR > 0)
 	{
-		// Ö»ÓÐgps-L2ÐÅÔë±È¼ÆËã²»Í¬ [2018/10/25 Amanda]
+		// Ö»ï¿½ï¿½gps-L2ï¿½ï¿½ï¿½ï¿½È¼ï¿½ï¿½ã²»Í¬ [2018/10/25 Amanda]
 		if (nSignal == GPS_C2P && nSystem == GPS_SYSTEM)
 		{
-			//Obs.dSNR = 10.0*log10(nSNR*0.1024*1000) - 6.0;  // ±ÈL2CµÍ6dB [2020/5/7 Amanda]
-			Obs->dSNR = 10.0*log10(nSNR*0.1164 * 1000);  // ±ÈL2CµÍ6dB [2020/5/7 Amanda]
+			//Obs.dSNR = 10.0*log10(nSNR*0.1024*1000) - 6.0;  // ï¿½ï¿½L2Cï¿½ï¿½6dB [2020/5/7 Amanda]
+			Obs->dSNR = 10.0*log10(nSNR*0.1164 * 1000);  // ï¿½ï¿½L2Cï¿½ï¿½6dB [2020/5/7 Amanda]
 		}
 		else
 		{
@@ -1292,10 +1292,10 @@ void GetObsValue(int nSystem, SObsPacket item, int nSignal, Hemis_MeasBlock *Obs
 	}
 	else
 	{
-		Obs->dSNR = 0.0;  //¶ÔÊýº¯ÊýµÄ¶¨ÒåÓò±ØÐë´óÓÚ0,·ñÔò²»ÊÇÊý¾Ý
+		Obs->dSNR = 0.0;  //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½0,ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	}
 
-	Obs->nSlipWarn = item.CS_TT_W3_SNR >> 12 & 0x7; //bit12-14£ºwarn for potential half cycle
+	Obs->nSlipWarn = item.CS_TT_W3_SNR >> 12 & 0x7; //bit12-14ï¿½ï¿½warn for potential half cycle
 	Obs->bTrackTimeFlag = item.CS_TT_W3_SNR >> 15 & 0x1; //bit15,1 set track time is bigger than 25.5s
 	int temp = item.CS_TT_W3_SNR >> 16 & 0xff;
 	Obs->dTrackTime = (item.CS_TT_W3_SNR >> 16 & 0xff)*0.1;  //bit16-23
@@ -1303,7 +1303,7 @@ void GetObsValue(int nSystem, SObsPacket item, int nSignal, Hemis_MeasBlock *Obs
 
 	Obs->bPhaseValid = item.P7_Doppler_FL & 0x1; //bit1
 	Obs->dDop = (item.P7_Doppler_FL >> 1 & 0x7fffff) / 512.0; //bit1-23
-	if (!(item.P7_Doppler_FL >> 24 & 0x1)) //bit24:1Îª¸º£¬0ÎªÕý»¹ÊÇ·´Ö®£¿
+	if (!(item.P7_Doppler_FL >> 24 & 0x1)) //bit24:1Îªï¿½ï¿½ï¿½ï¿½0Îªï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½Ö®ï¿½ï¿½
 	{
 		Obs->dDop = Obs->dDop*(-1.0);
 	}
@@ -1341,7 +1341,7 @@ Hemis_MeasBlock GetBlockData(const Hemis_MeasBlock *block, int Id, int nSignalTy
 	}
 
 
-	//ÐÞ¸Ä£ºµ±ÏàÎ»ÎÞÐ§Ê±£¬ÉèÖÃ°ëÖÜÌø±êÊ¶
+	//ï¿½Þ¸Ä£ï¿½ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½Ð§Ê±ï¿½ï¿½ï¿½ï¿½ï¿½Ã°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¶
 	if (!block->bPhaseValid)
 	{
 		BData.nLLI |= 0x1;
@@ -1350,7 +1350,7 @@ Hemis_MeasBlock GetBlockData(const Hemis_MeasBlock *block, int Id, int nSignalTy
 	return BData;
 }
 
-/* ²Î¿¼ÏàÎ»Ìá¹©¸ßÎ»¡¢ÊäÈëÏàÎ»µÍ23Î»£¬×éºÏºóµÄÐÂÏàÎ»Óë²Î¿¼ÏàÎ»²îÖµ¿ØÖÆÔÚ4196 */
+/* ï¿½Î¿ï¿½ï¿½ï¿½Î»ï¿½á¹©ï¿½ï¿½Î»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½23Î»ï¿½ï¿½ï¿½ï¿½Ïºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½Î¿ï¿½ï¿½ï¿½Î»ï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½4196 */
 double AdjustPhase(double dFinePhase, double dTotalPhase)
 {
 	double dResult = 0, dNewPhase;
@@ -1359,10 +1359,10 @@ double AdjustPhase(double dFinePhase, double dTotalPhase)
 	UINT nLower23 = ((UINT)(dFinePhase * 1024)) & 0x7fffff;
 
 	nTem = (nTem & 0xffffffffff800000) | (nLower23);
-	dNewPhase = nTem / 1024.0;  //ÐÞ¸ÄÏàÎ»[2014/12/31 GaoWei]
+	dNewPhase = nTem / 1024.0;  //ï¿½Þ¸ï¿½ï¿½ï¿½Î»[2014/12/31 GaoWei]
 
 
-	////µ÷Õû×éºÏÏàÎ»ºÍ²Î¿¼ÏàÎ»µÄ²îÖµ£¬Ê¹Ö®Ð¡ÓÚ4096£¬µ÷ÕûºóµÄÖµ¼´ÎªÊµ¼ÊÏàÎ»
+	////ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î»ï¿½Í²Î¿ï¿½ï¿½ï¿½Î»ï¿½Ä²ï¿½Öµï¿½ï¿½Ê¹Ö®Ð¡ï¿½ï¿½4096ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½ÎªÊµï¿½ï¿½ï¿½ï¿½Î»
 	if (fabs(dNewPhase - dTotalPhase) < 4096)
 	{
 		dResult = dNewPhase;
@@ -1373,7 +1373,7 @@ double AdjustPhase(double dFinePhase, double dTotalPhase)
 		int N = 0;
 		if (dDiff < 0)
 		{
-			N = (int)(dDiff / 8192 - 0.5); //Ðè½øÐÐËÄÉáÎåÈë
+			N = (int)(dDiff / 8192 - 0.5); //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		}
 		else
 		{
@@ -1545,31 +1545,31 @@ extern int readGnssObs(unsigned char* buff, int nStart, obs_t *obs, int *iPagesT
 			continue;
 		}
 
-		double dRoughPsr = (item.m_aulCodeMSBsPRN[i] >> 13 & 0x7FFFF)*256.0; /* Î±¾à¸ß19Î» */
+		double dRoughPsr = (item.m_aulCodeMSBsPRN[i] >> 13 & 0x7FFFF)*256.0; /* Î±ï¿½ï¿½ï¿½19Î» */
 		if (fabs(dRoughPsr) < 1E-6)
 		{
 			continue;
 		}
 
-		int nSignalType = item.m_awChanSignalSYS[i] >> 4 & 0xF;    /* Ô­Ê¼ÐÅºÅid */
-		BYTE bPcode = item.m_awChanSignalSYS[i] >> 13 & 0x1;  /* glonassÊÇ·ñÎªpÂë */
+		int nSignalType = item.m_awChanSignalSYS[i] >> 4 & 0xF;    /* Ô­Ê¼ï¿½Åºï¿½id */
+		BYTE bPcode = item.m_awChanSignalSYS[i] >> 13 & 0x1;  /* glonassï¿½Ç·ï¿½Îªpï¿½ï¿½ */
 
 		int codeType = 0;
-		int nL = UnifySignalType(nSystem, bPcode, &nSignalType, &codeType);      /* ×ª»»ÎªÍ³Ò»µÄÐÅºÅid */
+		int nL = UnifySignalType(nSystem, bPcode, &nSignalType, &codeType);      /* ×ªï¿½ï¿½ÎªÍ³Ò»ï¿½ï¿½ï¿½Åºï¿½id */
 
-		if (nSignalType < 0 || codeType <= 0) //[2021/08/11]
+		if (nSignalType < 0 || codeType <= 0 || nL >=(NFREQ+NEXOBS)) //[2021/08/11]
 		{
 			continue;
 		}
 
-		SHORT nFreq = item.m_awChanSignalSYS[i] >> 8 & 0x1F - 7;	   /* glonassÎÀÐÇÆµµÀ */
+		SHORT nFreq = item.m_awChanSignalSYS[i] >> 8 & 0x1F - 7;	   /* glonassï¿½ï¿½ï¿½ï¿½Æµï¿½ï¿½ */
 		if (nSystem == GLO_SYSTEM && nSVID <= GLO_MAX_NO)
 		//if (nSystem == SYS_GLO && nSVID <= GLO_MAX_NO)
 		{
 			nFreq = g_acFreqChan[nSVID];
 		}
 
-		double lam = GetWaveLength(nSystem, nSignalType, nFreq);     /* ÎÀÐÇ²¨³¤ */
+		double lam = GetWaveLength(nSystem, nSignalType, nFreq);     /* ï¿½ï¿½ï¿½Ç²ï¿½ï¿½ï¿½ */
 
 		if (fabs(lam) < 1E-6)
 		{
@@ -1589,34 +1589,37 @@ extern int readGnssObs(unsigned char* buff, int nStart, obs_t *obs, int *iPagesT
 		int Index = SatExistOrNot(sys, nSVID, obs);
 		if (Index == -1)
 		{
-			//if (nSystem == SYS_GLO)
-            if (nSystem == GLO_SYSTEM)
+			if ( (*nIndex)< MAXOBS )
 			{
-				//obs->data[nIndex].nFreChan = nFreq;
-			}
-            
-            obs->data[*nIndex].sat = satno(sys, nSVID);//nSVID;
-			//obs->data[nIndex].system = nSystem;
+				//if (nSystem == SYS_GLO)
+				if (nSystem == GLO_SYSTEM)
+				{
+					//obs->data[nIndex].nFreChan = nFreq;
+				}
+				
+				obs->data[*nIndex].sat = satno(sys, nSVID);//nSVID;
+				//obs->data[nIndex].system = nSystem;
 
-			if (obs->data[*nIndex].P[nL] == 0.0)
-			{
-				obs->data[*nIndex].P[nL] = block.dPsr;
-			}
+				if (obs->data[*nIndex].P[nL] == 0.0)
+				{
+					obs->data[*nIndex].P[nL] = block.dPsr;
+				}
 
-			if (obs->data[*nIndex].L[nL] == 0.0)
-			{
-				//obs->data[nIndex].lam[nL] = lam;
-				obs->data[*nIndex].L[nL] = block.dPhase;
-				obs->data[*nIndex].LLI[nL] = block.nLLI;
-				obs->data[*nIndex].D[nL] = block.dDop;
-			}
+				if (obs->data[*nIndex].L[nL] == 0.0)
+				{
+					//obs->data[nIndex].lam[nL] = lam;
+					obs->data[*nIndex].L[nL] = block.dPhase;
+					obs->data[*nIndex].LLI[nL] = block.nLLI;
+					obs->data[*nIndex].D[nL] = block.dDop;
+				}
 
-			if (obs->data[*nIndex].SNR[nL] == 0.0)
-			{
-				obs->data[*nIndex].SNR[nL] = (unsigned char)(block.dSNR*4.0);
+				if (obs->data[*nIndex].SNR[nL] == 0.0)
+				{
+					obs->data[*nIndex].SNR[nL] = (unsigned char)(block.dSNR*4.0);
+				}
+				obs->data[*nIndex].code[nL] = codeType;
+				obs->data[*nIndex].time = gpst2time(item.m_wWeek, item.m_dTow);
 			}
-			obs->data[*nIndex].code[nL] = codeType;
-			obs->data[*nIndex].time = gpst2time(item.m_wWeek, item.m_dTow);
 		}
 		else
 		{
@@ -1648,8 +1651,11 @@ extern int readGnssObs(unsigned char* buff, int nStart, obs_t *obs, int *iPagesT
 		
 		if (Index == -1)
 		{
-			(*nIndex)++;
-            obs->n = *nIndex;
+			if ((*nIndex)<MAXOBS)
+			{
+				(*nIndex)++;
+				obs->n = *nIndex;
+			}
 		}
 	}
 
@@ -1831,7 +1837,7 @@ static int readCmpEph(unsigned char* buff, int nStart, nav_t *nav)
 	double tow = 0.0;
 	memcpy(&tow, buff + nStart, sizeof(tow));
 	nStart += 4;
-	unsigned long toc = 0.0;
+	uint32_t toc = 0.0;
 	memcpy(&toc, buff + nStart, sizeof(toc));
 	eph.toc.time = toc * 8;
 	nStart += 4;
@@ -1848,7 +1854,7 @@ static int readCmpEph(unsigned char* buff, int nStart, nav_t *nav)
 	eph.f2 *= pow(2.0, -55);
 	nStart += 4;
 
-	unsigned long toe = 0.0;
+	uint32_t toe = 0.0;
 	memcpy(&toe, buff + nStart, sizeof(toe));
 	eph.toe.time = toe * 8;
 	nStart += 4;
@@ -1934,14 +1940,14 @@ static int readCmpEph(unsigned char* buff, int nStart, nav_t *nav)
 	memcpy(&iTem, buff + nStart, sizeof(iTem));
 	nStart += 4;
 
-	eph.iode = (unsigned short)(iTem & 0x1f);    //bit0-4
-	int nURA = (unsigned short)((iTem >> 5) & 0xf);   //bit5-8
+	eph.iode = (uint16_t)(iTem & 0x1f);    //bit0-4
+	int nURA = (uint16_t)((iTem >> 5) & 0xf);   //bit5-8
 	eph.sva = GetURA(nURA);
-	eph.iodc = (unsigned short)((iTem >> 9) & 0x1f); //bit9-13
+	eph.iodc = (uint16_t)((iTem >> 9) & 0x1f); //bit9-13
 
 	eph.svh = iTem >> 14 & 0x1; //bit14
 
-	nStart += 16;  //4¸öspare
+	nStart += 16;  //4ï¿½ï¿½spare
 
 	addEph(nav, &eph);
 
@@ -2034,7 +2040,7 @@ static int readGalileoEph(unsigned char* buff, int nStart, nav_t *nav)
 	double ai2 = getSignData(SF3words[4] >> 5 & G14BITS, 14, TRUE)*pow(2.0, -15);
 
 	eph.tgd[2] = getSignData(SF3words[5] & G10BITS, 10, TRUE)*pow(2.0, -32);
-	eph.tgd[1] = getSignData(SF3words[5] >> 10 & G10BITS, 10, TRUE)*pow(2.0, -32);//ÐÞ¸Ä,½«tgd1Óëtgd2»¥»»[2019/06/28]
+	eph.tgd[1] = getSignData(SF3words[5] >> 10 & G10BITS, 10, TRUE)*pow(2.0, -32);//ï¿½Þ¸ï¿½,ï¿½ï¿½tgd1ï¿½ï¿½tgd2ï¿½ï¿½ï¿½ï¿½[2019/06/28]
 
 
 	BYTE E1BDVS = SF3words[6] & 0x1;
@@ -2086,7 +2092,7 @@ static int readGalileoEph(unsigned char* buff, int nStart, nav_t *nav)
 	USHORT Health = 0;
 	if (E1BDVS)
 	{
-		Health |= eGALILEO_HEALTH_E1B_DV;   // ²»È·¶¨¸÷Êý¾ÝÎ»ÓÐÐ§ÐÔÊÇ·ñÐèÒªÈ¡·´?
+		Health |= eGALILEO_HEALTH_E1B_DV;   // ï¿½ï¿½È·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½Ð§ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ÒªÈ¡ï¿½ï¿½?
 	}
 	if (E1BH)
 	{
@@ -2118,7 +2124,7 @@ void GetCalendarTime(int N4, int Nt, double sec, GPSTime *timeMsg)
 {
 	int J = 0;
 	int nDay = 0;
-	if (Nt <= 366)   //[2015/1/7 GaoWei]°üÀ¨µ±Ìì¼ÆËãÔÚÄÚ£¬¹ÊÈ¡µÈºÅ
+	if (Nt <= 366)   //[2015/1/7 GaoWei]ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú£ï¿½ï¿½ï¿½È¡ï¿½Èºï¿½
 	{
 		J = 0;
 		nDay = Nt;
@@ -2205,7 +2211,7 @@ int readGlonassString(ULONG asStrings[][3], int size, geph_t *item)
 		else if (nTem == 2)//GLONASS_String 2
 		{
 			nTem = asStrings[i][0] >> 24 & 0x7;
-			item->svh = nTem >> 2 & 0x1;  //Ö»È¡×î¸ßÎ»£¬ºó2Î»²»¿¼ÂÇ
+			item->svh = nTem >> 2 & 0x1;  //Ö»È¡ï¿½ï¿½ï¿½Î»ï¿½ï¿½ï¿½ï¿½2Î»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
 			P2 = asStrings[i][0] >> 25 & 0x1;
 
@@ -2282,7 +2288,7 @@ int readGlonassString(ULONG asStrings[][3], int size, geph_t *item)
 		double dStatusflag = P | P1 << 1 | P2 << 3 | P3 << 4 || P4 << 5 || M << 6;
 	}
 
-	/*´¦ÀíÊ±¼äÎª¸ºÖµ[2017/4/14 Amanda]*/
+	/*ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½Îªï¿½ï¿½Öµ[2017/4/14 Amanda]*/
 	if (tb < 0)
 	{
 		tb += 86400;
@@ -2332,7 +2338,7 @@ static int readGlonassEph(unsigned char* buff, int nStart, nav_t *nav)
 	return 2;
 }
 
-static int readMsg1(unsigned char* buff, int nStart, sta_t *sta)
+extern int readMsg1(unsigned char* buff, int nStart, sta_t *sta)
 {
 	if (buff == NULL)
 	{
@@ -2363,7 +2369,7 @@ extern int decode_hemis(rtcm_t *rtcm)
     unsigned char pbuff[4096] = { 0 };
 	memcpy(&pbuff, rtcm->buff, sizeof(rtcm->buff));
 
-	unsigned short msgtype = 0, msglen = 0, week = 0;
+	uint16_t msgtype = 0, msglen = 0, week = 0;
 	double tow = 0.0;
 	int ret = 0;
 
@@ -2447,7 +2453,7 @@ extern int decode_hemis(rtcm_t *rtcm)
 
 extern int input_hemi_bin(rtcm_t *rtcm, unsigned char data)
 {
-    unsigned short type = 0, len = 0, week = 0;
+    uint16_t type = 0, len = 0, week = 0;
     double tow = 0.0;
 
     /* synchronize frame */

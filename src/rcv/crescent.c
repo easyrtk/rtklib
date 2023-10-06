@@ -526,7 +526,7 @@ static int decode_cresgloeph(raw_t *raw)
 static int decode_cres(raw_t *raw)
 {
     int type=U2(raw->buff+4);
-    int rel = 0;
+    int ret = 0;
     
     trace(3,"decode_cres: type=%2d len=%d\n",type,raw->len);
     
@@ -538,7 +538,7 @@ static int decode_cres(raw_t *raw)
         sprintf(raw->msgtype,"HEMIS %2d (%4d):",type,raw->len);
     }
     switch (type) {
-        case ID_CRESPOS   : return decode_crespos(raw);
+        case ID_CRESPOS   : return readMsg1(raw->buff, 8, &raw->sta);
         case ID_CRESRAW   : return decode_cresraw(raw);
         case ID_CRESRAW2  : return decode_cresraw2(raw);
         //case ID_CRESEPH   : return decode_creseph(raw);
@@ -547,8 +547,8 @@ static int decode_cres(raw_t *raw)
         //case ID_CRESGLORAW: return decode_cresgloraw(raw);
         //case ID_CRESGLOEPH: return decode_cresgloeph(raw);
         case ID_CRESOBS   : 
-            rel = readGnssObs(raw->buff, 8, &raw->obs, &raw->iPagesTotal, &raw->iPageNumber, &raw->nIndex);
-            if (rel == 1 && raw->iPagesTotal > 0 && raw->iPagesTotal - 1 == raw->iPageNumber) {
+            ret = readGnssObs(raw->buff, 8, &raw->obs, &raw->iPagesTotal, &raw->iPageNumber, &raw->nIndex);
+            if (ret == 1 && raw->iPagesTotal > 0 && (raw->iPagesTotal - 1) == raw->iPageNumber) {
                 return 1;
             }
             else {
