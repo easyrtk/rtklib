@@ -2352,8 +2352,12 @@ extern int readMsg1(unsigned char* buff, int nStart, sta_t *sta)
 	memcpy(&lon, buff + 28, sizeof(lon));
 	memcpy(&alt, buff + 36, sizeof(alt));
 
-	if (fabs(sta->pos[0]) < 1e-7) {
-		double blh[3] = { lat ,lon, (double)alt };
+	if (fabs(lat) < 1.0e-7 && fabs(lon) < 1.0e-7 && fabs(alt) < 1.0e-7)
+	{
+	}
+	else
+	{
+		double blh[3] = { lat * D2R ,lon * D2R, (double)alt };
 		double xyz[3] = { 0 };
 		pos2ecef(blh, xyz);
 
