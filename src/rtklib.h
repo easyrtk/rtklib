@@ -922,6 +922,9 @@ typedef struct {        /* RTCM control struct type */
     uint32_t nmsg2[100]; /* message count of RTCM 2 (1-99:1-99,0:other) */
     uint32_t nmsg3[400]; /* message count of RTCM 3 (1-299:1001-1299,300-329:4070-4099,0:ohter) */
     char opt[256];      /* RTCM dependent options */
+    int iPagesTotal;    /* for hemisphere */
+    int iPageNumber;    /* for hemisphere */
+    int nIndex;         /* for hemisphere */
 } rtcm_t;
 
 typedef struct {        /* RINEX control struct type */
@@ -1171,6 +1174,9 @@ typedef struct {        /* receiver raw data control type */
     char opt[256];      /* receiver dependent options */
     int format;         /* receiver stream format */
     void *rcv_data;     /* receiver dependent data */
+    int iPagesTotal;    /* for hemisphere */
+    int iPageNumber;    /* for hemisphere */
+    int nIndex;         /* for hemisphere */
 } raw_t;
 
 typedef struct {        /* stream type */

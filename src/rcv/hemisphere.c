@@ -123,15 +123,15 @@ const double dTwoPwrM66 = 1.3552527156068805E-20;
 #define  SATE_TOTAL_NO  (GPS_MAX_NO+GLO_MAX_NO+CMP_MAX_NO+SBS_MAX_NO+QZS_MAX_NO+GAL_MAX_NO+IMES_MAX_NO+NAVIC_MAX_NO+1)
 //#define  NFREQ          5
 
-//#define GPS_SYSTEM      0
-//#define GLO_SYSTEM    (GPS_SYSTEM+GPS_MAX_NO)
-//#define CMP_SYSTEM    (GLO_SYSTEM+GLO_MAX_NO)
-//#define SBS_SYSTEM    (CMP_SYSTEM+CMP_MAX_NO)
-//#define QZS_SYSTEM    (SBS_SYSTEM+SBS_MAX_NO)
-//#define GAL_SYSTEM    (QZS_SYSTEM+QZS_MAX_NO)
-//#define IMES_SYSTEM   (GAL_SYSTEM+GAL_MAX_NO)
-//#define NAVIC_SYSTEM  (IMES_SYSTEM+IMES_MAX_NO)
-//#define OTHER_SYSTEM  (NAVIC_SYSTEM+NAVIC_MAX_NO)
+#define GPS_SYSTEM      0
+#define GLO_SYSTEM    (GPS_SYSTEM+GPS_MAX_NO)
+#define CMP_SYSTEM    (GLO_SYSTEM+GLO_MAX_NO)
+#define SBS_SYSTEM    (CMP_SYSTEM+CMP_MAX_NO)
+#define QZS_SYSTEM    (SBS_SYSTEM+SBS_MAX_NO)
+#define GAL_SYSTEM    (QZS_SYSTEM+QZS_MAX_NO)
+#define IMES_SYSTEM   (GAL_SYSTEM+GAL_MAX_NO)
+#define NAVIC_SYSTEM  (IMES_SYSTEM+IMES_MAX_NO)
+#define OTHER_SYSTEM  (NAVIC_SYSTEM+NAVIC_MAX_NO)
 
 #define GPS_C1C  0
 #define GPS_C1P  1
@@ -880,7 +880,7 @@ static int UnifySignalType(int nSystem, BYTE bPcode, int *nSignalType, int *code
 {
 	int nFreq = 1;
 
-	if (nSystem == SYS_GPS)
+	if (nSystem == GPS_SYSTEM)
 	{
 		nFreq = *nSignalType + 1;
 
@@ -914,7 +914,7 @@ static int UnifySignalType(int nSystem, BYTE bPcode, int *nSignalType, int *code
 		}*/
 
 	}
-	else if (nSystem == SYS_GLO)
+	else if (nSystem == GLO_SYSTEM)
 	{
 		nFreq = *nSignalType + 1;
 
@@ -967,7 +967,7 @@ static int UnifySignalType(int nSystem, BYTE bPcode, int *nSignalType, int *code
 			}
 		}
 	}
-	else if (nSystem == SYS_CMP)
+	else if (nSystem == CMP_SYSTEM)
 	{
 		nFreq = *nSignalType + 1;
 		/*BDS Signal ID:
@@ -1026,7 +1026,7 @@ static int UnifySignalType(int nSystem, BYTE bPcode, int *nSignalType, int *code
 			*nSignalType = -1;
 		}
 	}
-	else if (nSystem == SYS_GAL)
+	else if (nSystem == GAL_SYSTEM)
 	{
 		nFreq = *nSignalType + 1;
 
@@ -1061,7 +1061,7 @@ static int UnifySignalType(int nSystem, BYTE bPcode, int *nSignalType, int *code
             *codeType = 39;
 		}
 	}
-	else if (nSystem == SYS_QZS)
+	else if (nSystem == QZS_SYSTEM)
 	{
 		nFreq = *nSignalType;
 
@@ -1088,7 +1088,7 @@ static int UnifySignalType(int nSystem, BYTE bPcode, int *nSignalType, int *code
 		//	*nSignalType = QZS_C1S; /* L1C */
 		//}
 	}
-	else if (nSystem == SYS_SBS)
+	else if (nSystem == SBS_SYSTEM)
 	{
 		if (*nSignalType == 0)
 		{
@@ -1103,7 +1103,7 @@ static int UnifySignalType(int nSystem, BYTE bPcode, int *nSignalType, int *code
             *codeType = 24;
 		}
 	}
-	else if (nSystem == SYS_IRN)
+	else if (nSystem == NAVIC_SYSTEM)
 	{
 		//WriteFailLog(" %d nSignalType %d",__LINE__ , nSignalType);
 	}
@@ -1114,7 +1114,7 @@ static int UnifySignalType(int nSystem, BYTE bPcode, int *nSignalType, int *code
 static double GetWaveLength(int iSystem, int iSignalType, int iFreq /* = InvalidFreq */)
 {
 	double dWaveLen = 0.0;
-	if (iSystem == SYS_GPS)
+	if (iSystem == GPS_SYSTEM)
 	{
 		if (iSignalType >= GPS_L1_MIN && iSignalType <= GPS_L1_MAX)
 		{
@@ -1129,7 +1129,7 @@ static double GetWaveLength(int iSystem, int iSignalType, int iFreq /* = Invalid
 			dWaveLen = LIGHT_SPEED / 1176450000.0;
 		}
 	}
-	else if (iSystem == SYS_GLO)
+	else if (iSystem == GLO_SYSTEM)
 	{
 		if (iFreq < -7 || iFreq > 13)
 		{
@@ -1159,7 +1159,7 @@ static double GetWaveLength(int iSystem, int iSignalType, int iFreq /* = Invalid
 		}
 		//printf("%d dWaveLen %f iFreq %d \n", __LINE__, dWaveLen, iFreq);
 	}
-	else if (iSystem == SYS_CMP)
+	else if (iSystem == CMP_SYSTEM)
 	{
 		if (iSignalType >= CMP_B1_MIN && iSignalType <= CMP_B1_MAX)
 		{
@@ -1186,7 +1186,7 @@ static double GetWaveLength(int iSystem, int iSignalType, int iFreq /* = Invalid
 			dWaveLen = LIGHT_SPEED / 1191795000.0;
 		}
 	}
-	else if (iSystem == SYS_SBS)
+	else if (iSystem == SBS_SYSTEM)
 	{
 		if (iSignalType == SBS_C1C)
 		{
@@ -1197,7 +1197,7 @@ static double GetWaveLength(int iSystem, int iSignalType, int iFreq /* = Invalid
 			dWaveLen = LIGHT_SPEED / 1176450000.0;
 		}
 	}
-	else if (iSystem == SYS_QZS)
+	else if (iSystem == QZS_SYSTEM)
 	{
 		if (iSignalType >= QZS_L1_MIN && iSignalType <= QZS_L1_MAX)
 		{
@@ -1216,7 +1216,7 @@ static double GetWaveLength(int iSystem, int iSignalType, int iFreq /* = Invalid
 			dWaveLen = LIGHT_SPEED / 1278750000.0;
 		}
 	}
-	else if (iSystem == SYS_GAL)
+	else if (iSystem == GAL_SYSTEM)
 	{
 		if (iSignalType >= GAL_C1C && iSignalType <= GAL_C1Z)
 		{
@@ -1239,7 +1239,7 @@ static double GetWaveLength(int iSystem, int iSignalType, int iFreq /* = Invalid
 			dWaveLen = LIGHT_SPEED / 1278750000.0;
 		}
 	}
-	else if (iSystem == SYS_IRN)//304格式[2020/03/27]
+	else if (iSystem == NAVIC_SYSTEM)//304格式[2020/03/27]
 	{
 		if (iSignalType >= IRN_L5_MIN && iSignalType <= IRN_L5_MAX)
 		{
@@ -1260,7 +1260,7 @@ void GetObsValue(int nSystem, SObsPacket item, int nSignal, Hemis_MeasBlock *Obs
 	if (nSNR > 0)
 	{
 		// 只有gps-L2信噪比计算不同 [2018/10/25 Amanda]
-		if (nSignal == GPS_C2P && nSystem == SYS_GPS)
+		if (nSignal == GPS_C2P && nSystem == GPS_SYSTEM)
 		{
 			//Obs.dSNR = 10.0*log10(nSNR*0.1024*1000) - 6.0;  // 比L2C低6dB [2020/5/7 Amanda]
 			Obs->dSNR = 10.0*log10(nSNR*0.1164 * 1000);  // 比L2C低6dB [2020/5/7 Amanda]
@@ -1396,11 +1396,12 @@ double GetURA(int nURA)
 int SatExistOrNot(int nSystem,int svId, obs_t *obs)
 {
 	int index = -1;
-	int sat = satno(nSystem, svId);
-	for (int i = 0; i < obs->n && i < MAXOBS; i++)
+    int sat = satno(nSystem, svId);
+
+	for (int i = 0; i < MAXOBS; i++)
 	{
-		if (obs->data[i].sat == sat)
-		{
+		if (obs->data[i].sat == sat && sat > 0)
+        {
 			index = i;
 			break;
 		}
@@ -1409,7 +1410,7 @@ int SatExistOrNot(int nSystem,int svId, obs_t *obs)
 	return index;
 }
 
-extern int readGnssObs(unsigned char* buff, int nStart, obs_t *obs)
+extern int readGnssObs(unsigned char* buff, int nStart, obs_t *obs, int *iPagesTotal, int *iPageNumber, int *nIndex)
 {
 	if (buff == NULL || nStart < 0)
 	{
@@ -1417,6 +1418,7 @@ extern int readGnssObs(unsigned char* buff, int nStart, obs_t *obs)
 	}
 
 	SBinaryMsg16 item;
+	//int nIndex = 0;
 
 	memcpy(&item.m_dTow, buff + nStart, sizeof(item.m_dTow));
 	nStart += 8;
@@ -1428,16 +1430,20 @@ extern int readGnssObs(unsigned char* buff, int nStart, obs_t *obs)
 	{
 		m_obsTime.week = item.m_wWeek;
 		m_obsTime.GPSSec = item.m_dTow;
-		obs->n = 0;
-		memset(obs->data, 0, sizeof(obs_t) * MAXOBS);
+
+        //memset(obs, 0, sizeof(obs_t));
+        obs->n = 0;
+        obs->nmax = 0;
+        memset(obs->data, 0, MAXOBS*sizeof(obsd_t));
+        *nIndex = 0;
 	}
 
 	/*total pages: bit 16--21;page num: bit 22--27*/
 	memcpy(&item.m_uPageCount, buff + nStart, sizeof(item.m_uPageCount));
 	nStart += 4;
 
-	int iPagesTotal = (item.m_uPageCount >> 16 & 0x3F);
-	int iPageNumber = (item.m_uPageCount >> 22 & 0x3F);
+	*iPagesTotal = (item.m_uPageCount >> 16 & 0x3F);
+	*iPageNumber = (item.m_uPageCount >> 22 & 0x3F);
 
 	memcpy(&item.m_uAllSignalsIncluded_01, buff + nStart, sizeof(item.m_uAllSignalsIncluded_01));
 	nStart += 4;
@@ -1456,6 +1462,7 @@ extern int readGnssObs(unsigned char* buff, int nStart, obs_t *obs)
 	{
 		BYTE nSVID = item.m_aulCodeMSBsPRN[i] & 0xFF;
 		BYTE nSystem = item.m_awChanSignalSYS[i] & 0xF;
+        int sys = SYS_NONE;
 
 		if (nSVID <= 0)
 		{
@@ -1467,46 +1474,54 @@ extern int readGnssObs(unsigned char* buff, int nStart, obs_t *obs)
 			if (nSVID >= SBAS_BASENO_INTERNAL2_LOWER &&
 				nSVID <= SBAS_BASENO_INTERNAL2_UPPER)
 			{
-				nSVID -= SBAS_BASENO_INTERNAL2;
-				nSystem = SYS_SBS;
-				continue;
+				//nSVID -= SBAS_BASENO_INTERNAL2;
+				nSystem = SBS_SYSTEM;
+				sys = SYS_SBS;
 			}
 			else if (nSVID >= SBAS_BASENO_INTERNAL1_LOWER &&
 				nSVID <= SBAS_BASENO_INTERNAL1_UPPER)
 			{
-				nSVID -= SBAS_BASENO_INTERNAL1;
-				nSystem = SYS_SBS;
-				continue;
+				nSystem = SBS_SYSTEM;
+				//nSVID -= SBAS_BASENO_INTERNAL1;
+				sys = SYS_SBS;
 			}
 			else
 			{
-				nSystem = SYS_GPS;
+				nSystem = GPS_SYSTEM;
+				sys = SYS_GPS;
 			}
 		}
 		else if (nSystem == 1)
 		{
-			nSystem = SYS_GLO;
+			nSystem = GLO_SYSTEM;
+			sys = SYS_GLO;
 		}
 		else if (nSystem == 2)
 		{
-			nSystem = SYS_GAL;
+			nSystem = GAL_SYSTEM;
+			sys = SYS_GAL;
 		}
 		else if (nSystem == 3)
 		{
-			nSystem = SYS_CMP;
+			nSystem = CMP_SYSTEM;
+			sys = SYS_CMP;
 		}
 		else if (nSystem == 4)
 		{
-			nSVID -= QZSS_BASENO;
-			nSystem = SYS_QZS;
+			//nSVID -= QZSS_BASENO;
+			nSystem = QZS_SYSTEM;
+			sys = SYS_QZS;
 		}
 		else if (nSystem == 5)
 		{
-			nSystem = SYS_IRN;
+			nSystem = NAVIC_SYSTEM;
+			sys = SYS_IRN;
 			continue;
 		}
 		else
 		{
+			nSystem = OTHER_SYSTEM;
+            sys = SYS_NONE;
 			continue;
 		}
 
@@ -1528,8 +1543,8 @@ extern int readGnssObs(unsigned char* buff, int nStart, obs_t *obs)
 		}
 
 		SHORT nFreq = item.m_awChanSignalSYS[i] >> 8 & 0x1F - 7;	   /* glonass卫星频道 */
-		//if (nSystem == GLO_SYSTEM && nSVID <= GLO_MAX_NO)
-		if (nSystem == SYS_GLO && nSVID <= GLO_MAX_NO)
+		if (nSystem == GLO_SYSTEM && nSVID <= GLO_MAX_NO)
+		//if (nSystem == SYS_GLO && nSVID <= GLO_MAX_NO)
 		{
 			nFreq = g_acFreqChan[nSVID];
 		}
@@ -1551,44 +1566,37 @@ extern int readGnssObs(unsigned char* buff, int nStart, obs_t *obs)
 		block.dPhase = AdjustPhase(block.dPhase, block.dPsr / lam);
 
 		// index
-		int Index = SatExistOrNot(nSystem, nSVID, obs);
+		int Index = SatExistOrNot(sys, nSVID, obs);
 		if (Index == -1)
 		{
-			if (obs->n < MAXOBS)
+			//if (nSystem == SYS_GLO)
+            if (nSystem == GLO_SYSTEM)
 			{
-				if (nSystem == SYS_GLO)//nSystem == GLO_SYSTEM)
-				{
-					//obs->data[nIndex].nFreChan = nFreq;
-				}
-				obs->data[obs->n].sat = satno(nSystem, nSVID);
-				//obs->data[nIndex].system = nSystem;
-
-				if (obs->data[obs->n].P[nL] == 0.0)
-				{
-					obs->data[obs->n].P[nL] = block.dPsr;
-				}
-
-				if (obs->data[obs->n].L[nL] == 0.0)
-				{
-					//obs->data[nIndex].lam[nL] = lam;
-					obs->data[obs->n].L[nL] = block.dPhase;
-					obs->data[obs->n].LLI[nL] = block.nLLI;
-					obs->data[obs->n].D[nL] = block.dDop;
-				}
-
-				if (obs->data[obs->n].SNR[nL] == 0.0)
-				{
-					obs->data[obs->n].SNR[nL] = (block.dSNR /SNR_UNIT);
-				}
-				obs->data[obs->n].code[nL] = codeType;
-				obs->data[obs->n].time = gpst2time(item.m_wWeek, item.m_dTow);
-				++obs->n;
+				//obs->data[nIndex].nFreChan = nFreq;
 			}
-			else
+            
+            obs->data[*nIndex].sat = satno(sys, nSVID);//nSVID;
+			//obs->data[nIndex].system = nSystem;
+
+			if (obs->data[*nIndex].P[nL] == 0.0)
 			{
-				/* error, reach maximum */
-				Index = Index;
+				obs->data[*nIndex].P[nL] = block.dPsr;
 			}
+
+			if (obs->data[*nIndex].L[nL] == 0.0)
+			{
+				//obs->data[nIndex].lam[nL] = lam;
+				obs->data[*nIndex].L[nL] = block.dPhase;
+				obs->data[*nIndex].LLI[nL] = block.nLLI;
+				obs->data[*nIndex].D[nL] = block.dDop;
+			}
+
+			if (obs->data[*nIndex].SNR[nL] == 0.0)
+			{
+				obs->data[*nIndex].SNR[nL] = (unsigned char)(block.dSNR*4.0);
+			}
+			obs->data[*nIndex].code[nL] = codeType;
+			obs->data[*nIndex].time = gpst2time(item.m_wWeek, item.m_dTow);
 		}
 		else
 		{
@@ -1610,14 +1618,22 @@ extern int readGnssObs(unsigned char* buff, int nStart, obs_t *obs)
 			}
 			if (obs->data[Index].SNR[nL] == 0.0)
 			{
-				obs->data[Index].SNR[nL] = (block.dSNR / SNR_UNIT);
+				obs->data[Index].SNR[nL] = (unsigned char)(block.dSNR * 4.0);
 			}
 			obs->data[Index].code[nL] = codeType;
 			obs->data[Index].time = gpst2time(item.m_wWeek, item.m_dTow);
 		}
+		
+		//printf("%14.3f %14.3f %14.3f %14.3f\r\n",block.dPsr, block.dPhase,block.dDop,block.dSNR );
+		
+		if (Index == -1)
+		{
+			(*nIndex)++;
+            obs->n = *nIndex;
+		}
 	}
 
-	return (iPageNumber + 1) == iPagesTotal;
+	return 1;
 }
 
 static void addEph(nav_t *nav, eph_t *eph) {
@@ -2296,7 +2312,7 @@ static int readGlonassEph(unsigned char* buff, int nStart, nav_t *nav)
 	return 2;
 }
 
-extern int readMsg1(unsigned char* buff, int nStart, sta_t *sta)
+static int readMsg1(unsigned char* buff, int nStart, sta_t *sta)
 {
 	if (buff == NULL)
 	{
@@ -2382,7 +2398,7 @@ extern int decode_hemis(rtcm_t *rtcm)
 	// decode observation
 	if (msgtype == FULL_OBSERVATIONS)
 	{
-		ret = readGnssObs(pbuff, nStart, &rtcm->obs);
+		ret = readGnssObs(pbuff, nStart, &rtcm->obs, &rtcm->iPagesTotal, &rtcm->iPageNumber, &rtcm->nIndex);
 		//m_obsTime = rtcm->time;
 	}
 	else if (msgtype == GPS_EPHEMERIS) // decode GPS ephemeris
