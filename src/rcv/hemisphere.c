@@ -2,6 +2,26 @@
 
 static const char rcsid[] = "$Id:$";
 
+typedef char                CHAR;
+typedef int                 BOOL;
+typedef unsigned char       BYTE;
+typedef short               SHORT;
+typedef unsigned short      USHORT;
+typedef int                 INT;
+typedef unsigned int        UINT;
+typedef long                LONG;
+typedef unsigned long       ULONG;
+typedef uint64_t            LONG64;
+typedef uint64_t            ULONG64;
+
+#ifndef FALSE
+#define FALSE               0
+#endif
+
+#ifndef TRUE
+#define TRUE                1
+#endif
+
 /* constants -----------------------------------------------------------------*/
 #define RTCM2PREAMB 0x66        /* rtcm ver.2 frame preamble */
 #define RTCM3PREAMB 0xD3        /* rtcm ver.3 frame preamble */
