@@ -546,15 +546,7 @@ static int decode_cres(raw_t *raw)
         case ID_CRESIONUTC: return decode_cresionutc(raw);
         //case ID_CRESGLORAW: return decode_cresgloraw(raw);
         //case ID_CRESGLOEPH: return decode_cresgloeph(raw);
-        case ID_CRESOBS   : 
-            ret = readGnssObs(raw->buff, 8, &raw->obs, &raw->iPagesTotal, &raw->iPageNumber, &raw->nIndex);
-            if (ret == 1 && raw->iPagesTotal > 0 && (raw->iPagesTotal - 1) == raw->iPageNumber) {
-                return 1;
-            }
-            else {
-                return 0;
-            }
-
+        case ID_CRESOBS   : return readGnssObs(raw->buff, 8, &raw->obs);
     }
     return 0;
 }

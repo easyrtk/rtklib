@@ -1266,15 +1266,6 @@ static int convrnx_s(int sess, int format, rnxopt_t *opt, const char *file,
         str->nav->glo_fcn[i]=opt->glofcn[i]; /* FCN+8 */
     }
     /* scan input files */
-    obsd_t *sat_obs;
-    sat_obs = (obsd_t *)malloc(sizeof(obsd_t)*MAXOBS);
-    memset(sat_obs, 0, sizeof(obsd_t)*MAXOBS);
-    str->raw.obs.data = sat_obs;
-    str->raw.obs.n = 0;
-    str->raw.obs.nmax = 0;
-    str->raw.nIndex = 0;
-    str->raw.iPagesTotal = str->raw.iPageNumber = 0;
-
     if (!scan_file(epath,nf,opt,str,mask)) {
         for (i=0;i<MAXEXFILE;i++) free(epath[i]);
         free_strfile(str);

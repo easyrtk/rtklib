@@ -3006,9 +3006,7 @@ extern int savenav(const char *file, const nav_t *nav)
 *-----------------------------------------------------------------------------*/
 extern void freeobs(obs_t *obs)
 {
-    //free(obs->data); 
-    //obs->data=NULL; 
-    //obs->n=obs->nmax=0;
+    free(obs->data); obs->data=NULL; obs->n=obs->nmax=0;
 }
 /* free navigation data ---------------------------------------------------------
 * free memory for navigation data

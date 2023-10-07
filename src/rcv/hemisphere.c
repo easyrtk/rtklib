@@ -435,8 +435,6 @@ typedef struct
 
 } GPSTime;
 
-GPSTime m_obsTime = { 0 };
-
 static double GPSTime_diff(GPSTime A, GPSTime B)
 {
     double dResult = 0;
@@ -671,53 +669,6 @@ typedef struct
 	int iPagesTotal;
 	//std::vector<int> iPageNumberVec;
 }Msg16PapeStruct;
-
-#if 0
-/* msm signal id table -------------------------------------------------------*/
-const char *msm_sig_gps[32] = {
-	/* GPS: ref [13] table 3.5-87, ref [14] table 3.5-91 */
-	"", "1C", "1P", "1W", "", "", "", "2C", "2P", "2W", "", "",
-	"", "", "2S", "2L"  ,"2X"  ,""  ,""  ,""  ,""  ,"5I"  ,"5Q"  ,"5X"  ,
-	""  ,""  ,""  ,""  ,""  ,"1S"  ,"1L"  ,"1X"
-	//""  ,"1C","1P","1W","1Y","1M",""  ,"2C","2P","2W","2Y","2M", /*  1-12 */
-	//""  ,""  ,"2S","2L","2X",""  ,""  ,""  ,""  ,"5I","5Q","5X", /* 13-24 */
-	//""  ,""  ,""  ,""  ,""  ,"1S","1L","1X"                      /* 25-32 */
-};
-const char *msm_sig_glo[32] = {
-	/* GLONASS: ref [13] table 3.5-93, ref [14] table 3.5-97 */
-	""  ,"1C","1P",""  ,""  ,""  ,""  ,"2C","2P",""  ,"3I","3Q",
-	"3X",""  ,""  ,""  ,""  ,""  ,""  ,""  ,""  ,""  ,""  ,""  ,
-	""  ,""  ,""  ,""  ,""  ,""  ,""  ,""
-};
-const char *msm_sig_gal[32] = {
-	/* Galileo: ref [13] table 3.5-96, ref [14] table 3.5-100 */
-	""  ,"1C","1A","1B","1X","1Z",""  ,"6C","6A","6B","6X","6Z",
-	""  ,"7I","7Q","7X",""  ,"8I","8Q","8X",""  ,"5I","5Q","5X",
-	""  ,""  ,""  ,""  ,""  ,""  ,""  ,""
-};
-const char *msm_sig_qzs[32] = {
-	/* QZSS: ref [13] table 3.5-T+003 */
-	""  ,"1C",""  ,""  ,""  ,""  , ""  ,""  ,"6S","6L","6X",""  ,
-	""  ,""  ,"2S","2L","2X",""  ,""  ,""  ,""  ,"5I","5Q","5X",
-	""  ,""  ,""  ,""  ,""  ,"1S","1L","1X"
-
-	//""  ,"1C",""  ,""  ,""  ,"1Z",""  ,""  ,"6S","6L","6X",""  ,
-	//""  ,""  ,"2S","2L","2X",""  ,""  ,""  ,""  ,"5I","5Q","5X",
-	//""  ,""  ,""  ,""  ,""  ,"1S","1L","1X"
-};
-const char *msm_sig_sbs[32] = {
-	/* SBAS: ref [13] table 3.5-T+005 */
-	""  ,"1C",""  ,""  ,""  ,""  ,""  ,""  ,""  ,""  ,""  ,""  ,
-	""  ,""  ,""  ,""  ,""  ,""  ,""  ,""  ,""  ,"5I","5Q","5X",
-	""  ,""  ,""  ,""  ,""  ,""  ,""  ,""
-};
-const char *msm_sig_cmp[32] = {
-	/* BeiDou: ref [13] table 3.5-T+012 */
-	""  ,"2I","2Q","2X",""  ,""  ,""  ,"6I","6Q","6X",""  ,""  ,
-	""  ,"7I","7Q","7X",""  ,""  ,""  ,""  ,""  ,""  ,""  ,""  ,
-	""  ,""  ,""  ,""  ,""  ,""  ,""  ,""
-};
-#endif
 
 /* ssr update intervals ------------------------------------------------------*/
 static const double ssrudint[16] = {
@@ -1415,22 +1366,21 @@ double GetURA(int nURA)
 
 int SatExistOrNot(int nSystem,int svId, obs_t *obs)
 {
-	int index = -1;
     int sat = satno(nSystem, svId);
+	int i = 0;
 
-	for (int i = 0; i < MAXOBS; i++)
+	for (; i < obs->n && i < MAXOBS; i++)
 	{
 		if (obs->data[i].sat == sat && sat > 0)
         {
-			index = i;
 			break;
 		}
 	}
 
-	return index;
+	return i;
 }
 
-extern int readGnssObs(unsigned char* buff, int nStart, obs_t *obs, int *iPagesTotal, int *iPageNumber, int *nIndex)
+extern int readGnssObs(unsigned char* buff, int nStart, obs_t *obs)
 {
 	if (buff == NULL || nStart < 0)
 	{
@@ -1438,7 +1388,6 @@ extern int readGnssObs(unsigned char* buff, int nStart, obs_t *obs, int *iPagesT
 	}
 
 	SBinaryMsg16 item;
-	//int nIndex = 0;
 
 	memcpy(&item.m_dTow, buff + nStart, sizeof(item.m_dTow));
 	nStart += 8;
@@ -1446,24 +1395,23 @@ extern int readGnssObs(unsigned char* buff, int nStart, obs_t *obs, int *iPagesT
 	nStart += 2;
 	nStart += 2;
 
-	if ((m_obsTime.week - item.m_wWeek) != 0 || fabs(m_obsTime.GPSSec - item.m_dTow) > 1E-6)
-	{
-		m_obsTime.week = item.m_wWeek;
-		m_obsTime.GPSSec = item.m_dTow;
+	double dt = 0;
 
-        //memset(obs, 0, sizeof(obs_t));
+	gtime_t time = gpst2time(item.m_wWeek, item.m_dTow);
+
+	if (obs->n > 0 && fabs(dt=timediff(time, obs->data[0].time))> 0.001)
+	{
         obs->n = 0;
         obs->nmax = 0;
         memset(obs->data, 0, MAXOBS*sizeof(obsd_t));
-        *nIndex = 0;
 	}
 
 	/*total pages: bit 16--21;page num: bit 22--27*/
 	memcpy(&item.m_uPageCount, buff + nStart, sizeof(item.m_uPageCount));
 	nStart += 4;
 
-	*iPagesTotal = (item.m_uPageCount >> 16 & 0x3F);
-	*iPageNumber = (item.m_uPageCount >> 22 & 0x3F);
+	int iPagesTotal = (item.m_uPageCount >> 16 & 0x3F);
+	int iPageNumber = (item.m_uPageCount >> 22 & 0x3F);
 
 	memcpy(&item.m_uAllSignalsIncluded_01, buff + nStart, sizeof(item.m_uAllSignalsIncluded_01));
 	nStart += 4;
@@ -1587,39 +1535,39 @@ extern int readGnssObs(unsigned char* buff, int nStart, obs_t *obs, int *iPagesT
 
 		// index
 		int Index = SatExistOrNot(sys, nSVID, obs);
-		if (Index == -1)
+		if (Index >= MAXOBS) continue;
+
+		if (Index==obs->n) /* new satellite */
 		{
-			if ( (*nIndex)< MAXOBS )
+			//if (nSystem == SYS_GLO)
+			if (nSystem == GLO_SYSTEM)
 			{
-				//if (nSystem == SYS_GLO)
-				if (nSystem == GLO_SYSTEM)
-				{
-					//obs->data[nIndex].nFreChan = nFreq;
-				}
-				
-				obs->data[*nIndex].sat = satno(sys, nSVID);//nSVID;
-				//obs->data[nIndex].system = nSystem;
-
-				if (obs->data[*nIndex].P[nL] == 0.0)
-				{
-					obs->data[*nIndex].P[nL] = block.dPsr;
-				}
-
-				if (obs->data[*nIndex].L[nL] == 0.0)
-				{
-					//obs->data[nIndex].lam[nL] = lam;
-					obs->data[*nIndex].L[nL] = block.dPhase;
-					obs->data[*nIndex].LLI[nL] = block.nLLI;
-					obs->data[*nIndex].D[nL] = block.dDop;
-				}
-
-				if (obs->data[*nIndex].SNR[nL] == 0.0)
-				{
-					obs->data[*nIndex].SNR[nL] = (unsigned char)(block.dSNR*4.0);
-				}
-				obs->data[*nIndex].code[nL] = codeType;
-				obs->data[*nIndex].time = gpst2time(item.m_wWeek, item.m_dTow);
+				//obs->data[nIndex].nFreChan = nFreq;
 			}
+			
+			obs->data[Index].sat = satno(sys, nSVID);//nSVID;
+			//obs->data[nIndex].system = nSystem;
+
+			if (obs->data[Index].P[nL] == 0.0)
+			{
+				obs->data[Index].P[nL] = block.dPsr;
+			}
+
+			if (obs->data[Index].L[nL] == 0.0)
+			{
+				//obs->data[Index].lam[nL] = lam;
+				obs->data[Index].L[nL] = block.dPhase;
+				obs->data[Index].LLI[nL] = block.nLLI;
+				obs->data[Index].D[nL] = block.dDop;
+			}
+
+			if (obs->data[Index].SNR[nL] == 0.0)
+			{
+				obs->data[Index].SNR[nL] = block.dSNR / SNR_UNIT;
+			}
+			obs->data[Index].code[nL] = codeType;
+			obs->data[Index].time = gpst2time(item.m_wWeek, item.m_dTow);
+			++obs->n;
 		}
 		else
 		{
@@ -1648,50 +1596,9 @@ extern int readGnssObs(unsigned char* buff, int nStart, obs_t *obs, int *iPagesT
 		}
 		
 		//printf("%14.3f %14.3f %14.3f %14.3f\r\n",block.dPsr, block.dPhase,block.dDop,block.dSNR );
-		
-		if (Index == -1)
-		{
-			if ((*nIndex)<MAXOBS)
-			{
-				(*nIndex)++;
-				obs->n = *nIndex;
-			}
-		}
 	}
 
-	return 1;
-}
-
-static void addEph(nav_t *nav, eph_t *eph) {
-	int index = -1;
-	for (int i = 0; i < nav->n; i++) {
-		if (nav->eph[i].sat == eph->sat) {
-			index = i;
-			break;
-		}
-	}
-	if (index >= 0) {
-		memcpy(&nav->eph[index], eph, sizeof(eph_t));
-	}
-	else if (nav->n < nav->nmax) {
-        memcpy(&nav->eph[nav->n++], eph, sizeof(eph_t));
-	}
-}
-
-static void addGeph(nav_t *nav, geph_t *eph) {
-	int index = -1;
-	for (int i = 0; i < nav->ng; i++) {
-		if (nav->geph[i].sat == eph->sat) {
-			index = i;
-			break;
-		}
-	}
-	if (index >= 0) {
-		memcpy(&nav->geph[index], eph, sizeof(geph_t));
-	}
-	else if (nav->ng < nav->ngmax) {
-        memcpy(&nav->geph[nav->ng++], eph, sizeof(geph_t));
-	}
+	return iPagesTotal > 0 && (iPagesTotal - 1) == iPageNumber;
 }
 
 static int readGpsEph(unsigned char* buff, int nStart, nav_t *nav)
@@ -2366,209 +2273,4 @@ extern int readMsg1(unsigned char* buff, int nStart, sta_t *sta)
 		sta->pos[2] = xyz[2];
 	}
 	return 3;
-}
-
-extern int decode_hemis(rtcm_t *rtcm)
-{
-    unsigned char pbuff[4096] = { 0 };
-	memcpy(&pbuff, rtcm->buff, sizeof(rtcm->buff));
-
-	uint16_t msgtype = 0, msglen = 0, week = 0;
-	double tow = 0.0;
-	int ret = 0;
-
-	memcpy(&msgtype, pbuff + 4, sizeof(msgtype));
-	memcpy(&msglen, pbuff + 6, sizeof(msglen));
-
-	GPSTime timeCur;
-	if (msgtype == GPS_OBSERVATIONS || msgtype == GLONASS_OBSERVATIONS ||
-		msgtype == BEIDOU_OBSERVATIONS || msgtype == FULL_OBSERVATIONS)
-	{
-		memcpy(&tow, pbuff + 8, sizeof(tow));
-		memcpy(&week, pbuff + 16, sizeof(week));
-		rtcm->time = gpst2time(week, floor(tow + 0.5));
-		//rtcm->tow = tow;
-	}
-	else if (msgtype == GPS_OBSERVATIONS_SINGLE_FREQUENCY)
-	{
-		memcpy(&week, pbuff + 10, sizeof(week));
-		memcpy(&tow, pbuff + 12, sizeof(tow));
-		rtcm->time = gpst2time(week, floor(tow + 0.5));
-		//rtcm->tow = tow;
-	}
-	timeCur.week = week;
-	timeCur.GPSSec = tow;
-
-	if (m_obsTime.week == 0 && week)
-	{
-		m_obsTime.week = week;
-		m_obsTime.GPSSec = tow;
-	}
-
-	int bIsEpochFull;
-	if (m_obsTime.week != 0 && timeCur.week != 0 && fabs(GPSTime_diff(timeCur, m_obsTime)) > 1E-6)
-	{
-		bIsEpochFull = TRUE;
-
-		// convert obs to RTCM format
-		rtcm->time.time = timeCur.week * 604800 + (int)timeCur.GPSSec;
-		rtcm->time.sec = timeCur.GPSSec - (int)timeCur.GPSSec;
-		
-		/*int type;
-		int sync;
-		encode_rtcm3(rtcm, type, sync);*/		
-		
-		memset(&rtcm->obs, 0, sizeof(obs_t));
-		
-		m_obsTime.week = timeCur.week;
-		m_obsTime.GPSSec = timeCur.GPSSec;
-	}
-
-	int nStart = 8;
-	// decode observation
-	if (msgtype == FULL_OBSERVATIONS)
-	{
-		ret = readGnssObs(pbuff, nStart, &rtcm->obs, &rtcm->iPagesTotal, &rtcm->iPageNumber, &rtcm->nIndex);
-		//m_obsTime = rtcm->time;
-	}
-	else if (msgtype == GPS_EPHEMERIS) // decode GPS ephemeris
-	{
-		ret = readGpsEph(pbuff, nStart, &rtcm->nav);
-	}
-	else if (msgtype == BEIDOU_EPHEMERIS) // decode BDS ephemeris
-	{
-		ret = readCmpEph(pbuff, nStart, &rtcm->nav);
-	}
-	else if (msgtype == GALILEO_EPHEMERIS) // decode Galileo ephemeris
-	{
-		ret = readGalileoEph(pbuff, nStart, &rtcm->nav);
-	}
-	else if (msgtype == GLONASS_EPHEMERIS) // decode GLONASS ephemeris
-	{
-		ret = readGlonassEph(pbuff, nStart, &rtcm->nav);
-	}
-	else if (msgtype == 1)
-	{
-		ret = readMsg1(pbuff, nStart, &rtcm->sta);
-	}
-
-	return ret;
-}
-
-extern int input_hemi_bin(rtcm_t *rtcm, unsigned char data)
-{
-    uint16_t type = 0, len = 0, week = 0;
-    double tow = 0.0;
-
-    /* synchronize frame */
-    if (rtcm->nbyte == 0) {
-        if (data != HEMIBPREAMB) return 0;
-        rtcm->buff[rtcm->nbyte++] = data;
-        return 0;
-    }
-    rtcm->buff[rtcm->nbyte++] = data;
-
-    if (rtcm->nbyte == 8) {
-        if (rtcm->buff[1] == 'B' && rtcm->buff[2] == 'I' && rtcm->buff[3] == 'N') {
-            memcpy(&type, rtcm->buff + 4, sizeof(type));
-            //printf("%5d\n", type);
-            memcpy(&len, rtcm->buff + 6, sizeof(len));
-            rtcm->len = len;
-            rtcm->type = type;
-            if (len < 0 || len > 10000)
-            {
-                rtcm->type = 0;
-                rtcm->nbyte = 0;
-                return 0;
-            }
-        }
-        else {
-            rtcm->type = 0;
-            rtcm->nbyte = 0;
-            return 0;
-        }
-    }
-
-    if (rtcm->nbyte<8 || rtcm->nbyte<rtcm->len + 8) return 0;
-    rtcm->nbyte = 0;
-
-    /* cann't do check parity */
-    /*if (!checkCRC(rtcm->buff + 8, rtcm->len + 2)) {
-    return 0;
-    }*/
-
-    return decode_hemis(rtcm);
-}
-
-extern void hemi_bin2rtcm(rtcm_t* rtcm, FILE *fout) {
-    int rel = 0, syn = 0, lastSYS = 0;
-    int prn = 0, sys = 0;
-    int satNUM[MSN_NUM] = { 0 }, j, ns = 0, type[MSN_NUM] = { 1077, 1087 ,1127, 1097, 1107 ,1117 };
-
-    for (j = 0; j < MAXOBS; ++j) {
-        if (rtcm->obs.data[j].sat == 0) {
-            continue;
-        }
-
-        prn = 0;
-        sys = satsys(rtcm->obs.data[j].sat, &prn);
-
-        if (sys == SYS_GPS) {
-            ++satNUM[0];
-            ++ns;
-        }
-        else if (sys == SYS_GLO) {
-            ++satNUM[1];
-            ++ns;
-        }
-        else if (sys == SYS_CMP) {
-            ++satNUM[2];
-            ++ns;
-        }
-        else if (sys == SYS_GAL) {
-            ++satNUM[3];
-            ++ns;
-        }
-        else if (sys == SYS_SBS) {
-            ++satNUM[4];
-            ++ns;
-        }
-        else if (sys == SYS_QZS) {
-            ++satNUM[5];
-            ++ns;
-        }
-    }
-
-    if (ns > 0) {
-        memset(rtcm->buff, 0, sizeof(rtcm->buff));
-        rel = gen_rtcm3(rtcm, 1005, 0, 0);
-        if (rel > 0) {
-            fwrite(rtcm->buff, 1, rtcm->nbyte, fout);
-        }
-
-        rtcm->obs.n = ns;
-        lastSYS = 0;
-        for (j = 0; j < MSN_NUM; ++j) {
-            if (satNUM[j] > 0) {
-                lastSYS = j;
-            }
-        }
-
-        for (j = 0; j < MSN_NUM; ++j) {
-            if (satNUM[j] == 0) {
-                continue;
-            }
-            syn = lastSYS == j ? 0 : 1;
-
-            memset(rtcm->buff, 0, sizeof(rtcm->buff));
-            rel = gen_rtcm3(rtcm, type[j], 0, syn);
-
-            if (rel > 0) {
-                fwrite(rtcm->buff, 1, rtcm->nbyte, fout);
-            }
-        }
-    }
-    rtcm->nbyte = 0;
-
-    fflush(fout);
 }
