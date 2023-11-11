@@ -1171,15 +1171,16 @@ extern int decode_aidX3(uint8_t* buff, int nlen, aid_atm_t* atm, int *n, int max
 	nsat   = getbitu_(buff,i, 6); i+= 6; /* no of satellites */
 	*rcv   = getbitu_(buff,i,16); i+=16; /* rcv */
 
-#if defined(_WIN32) && defined(_DEBUG)
-    printf("%6i,%4i,%4i,%4i,%4i,%4i,%i\n", tow, nlen, type, subtype, *rcv, nsat, *sync);
-#endif
-	     if (subtype== 23||subtype==123||subtype==223||subtype==323||subtype==423) *sys = 0; /* GPS */
-	else if (subtype== 43||subtype==143||subtype==243||subtype==343||subtype==443) *sys = 1; /* GLO */
-	else if (subtype== 63||subtype==163||subtype==263||subtype==363||subtype==463) *sys = 2; /* GAL */
-	else if (subtype== 83||subtype==183||subtype==283||subtype==383||subtype==483) *sys = 3; /* QZS */
-	else if (subtype==103||subtype==203||subtype==303||subtype==403||subtype==503) *sys = 4; /* BDS */
+	     if (subtype== 23||subtype==123||subtype==223||subtype==323||subtype==423) { *sys=0; *idx=(subtype- 23)/100; } /* GPS */
+	else if (subtype== 43||subtype==143||subtype==243||subtype==343||subtype==443) { *sys=1; *idx=(subtype- 43)/100; } /* GLO */
+	else if (subtype== 63||subtype==163||subtype==263||subtype==363||subtype==463) { *sys=2; *idx=(subtype- 63)/100; } /* GAL */
+	else if (subtype== 83||subtype==183||subtype==283||subtype==383||subtype==483) { *sys=3; *idx=(subtype- 83)/100; } /* QZS */
+	else if (subtype==103||subtype==203||subtype==303||subtype==403||subtype==503) { *sys=4; *idx=(subtype-103)/100; } /* BDS */
 	else return 0;
+
+#if defined(_WIN32) && defined(_DEBUG)
+         printf("%6i,%4i,%4i,%4i,%4i,%4i,%4i,%i\n", tow, nlen, type, subtype, *idx, *rcv, nsat, *sync);
+#endif
 
 	if ((8+6+10+12+2+9+20+1+6+16+nsat*(6+1+20))>(nlen*8)) return 0;
 
@@ -1234,12 +1235,16 @@ extern int decode_aidX4(uint8_t* buff, int nlen, aid_atm_t* atm, int *n, int max
 #if defined(_WIN32) && defined(_DEBUG)
     printf("%6i,%4i,%4i,%4i,%4i,%4i,%i\n", tow, nlen, type, subtype, *rcv, nsat, *sync);
 #endif
-	     if (subtype== 24||subtype==124||subtype==224||subtype==324||subtype==424) *sys = 0; /* GPS */
-	else if (subtype== 44||subtype==144||subtype==244||subtype==344||subtype==444) *sys = 1; /* GLO */
-	else if (subtype== 64||subtype==164||subtype==264||subtype==364||subtype==464) *sys = 2; /* GAL */
-	else if (subtype== 84||subtype==184||subtype==284||subtype==384||subtype==484) *sys = 3; /* QZS */
-	else if (subtype==104||subtype==204||subtype==304||subtype==404||subtype==504) *sys = 4; /* BDS */
+	     if (subtype== 24||subtype==124||subtype==224||subtype==324||subtype==424) { *sys=0; *idx=(subtype- 24)%100; }/* GPS */
+	else if (subtype== 44||subtype==144||subtype==244||subtype==344||subtype==444) { *sys=1; *idx=(subtype- 44)%100; }/* GLO */
+	else if (subtype== 64||subtype==164||subtype==264||subtype==364||subtype==464) { *sys=2; *idx=(subtype- 64)%100; }/* GAL */
+	else if (subtype== 84||subtype==184||subtype==284||subtype==384||subtype==484) { *sys=3; *idx=(subtype- 84)%100; }/* QZS */
+	else if (subtype==104||subtype==204||subtype==304||subtype==404||subtype==504) { *sys=4; *idx=(subtype-104)%100; }/* BDS */
 	else return 0;
+
+#if defined(_WIN32) && defined(_DEBUG)
+         printf("%6i,%4i,%4i,%4i,%4i,%4i,%4i,%i\n", tow, nlen, type, subtype, *idx, *rcv, nsat, *sync);
+#endif
 
 	if ((8+6+10+12+2+9+20+1+6+16+nsat*(6+1+1+1+1+20+20))>(nlen*8)) return 0;
 

@@ -2665,44 +2665,64 @@ static int decode_aidX4_(rtcm_t* rtcm)
 /* decode type 4054: proprietary message CMCC---------------------------------*/
 static int decode_type4054(rtcm_t *rtcm)
 {
-    int i=24+12,ver,subtype;
+    int i=24+12,ver=0,subtype=0;
     
-    if (i+3+8>=rtcm->len*8) {
+    if (i+2+9>=rtcm->len*8) {
         trace(2,"rtcm3 4054: length error len=%d\n",rtcm->len);
         return -1;
     }
-    ver    =getbitu(rtcm->buff,i,3); i+=3;
-    subtype=getbitu(rtcm->buff,i,8); i+=8;
+    ver    =getbitu(rtcm->buff,i,2); i+=2;
+    subtype=getbitu(rtcm->buff,i,9); i+=9;
     
 	if (rtcm->outtype) {
-		sprintf(rtcm->cmccmsgtype+strlen(rtcm->cmccmsgtype)," ver=%d subtype=%3d",ver,
-					subtype);
-//        sprintf(rtcm->msgtype+strlen(rtcm->msgtype)," ver=%d subtype=%3d",ver,
-//                subtype);
+		sprintf(rtcm->cmccmsgtype+strlen(rtcm->cmccmsgtype)," ver=%d subtype=%3d",ver, subtype);
     }
-	switch (subtype) {
+    switch (subtype) {
 		case   1: return decode_aid1__(rtcm);
         case   2: return decode_aid2__(rtcm);
         case   5: return decode_aid5__(rtcm);
+        case   6: return decode_aid5__(rtcm);
+        case   7: return decode_aid5__(rtcm);
+        case   8: return decode_aid5__(rtcm);
         case  21: return decode_aidX1_(rtcm);
         case  22: return decode_aidX2_(rtcm);
         case  23: return decode_aidX3_(rtcm);
+        case 123: return decode_aidX3_(rtcm);
+        case 223: return decode_aidX3_(rtcm);
+        case 323: return decode_aidX3_(rtcm);
+        case 423: return decode_aidX3_(rtcm);
         case  24: return decode_aidX4_(rtcm);
         case  41: return decode_aidX1_(rtcm);
         case  42: return decode_aidX2_(rtcm);
         case  43: return decode_aidX3_(rtcm);
+        case 143: return decode_aidX3_(rtcm);
+        case 243: return decode_aidX3_(rtcm);
+        case 343: return decode_aidX3_(rtcm);
+        case 443: return decode_aidX3_(rtcm);
         case  44: return decode_aidX4_(rtcm);
         case  61: return decode_aidX1_(rtcm);
         case  62: return decode_aidX2_(rtcm);
         case  63: return decode_aidX3_(rtcm);
+        case 163: return decode_aidX3_(rtcm);
+        case 263: return decode_aidX3_(rtcm);
+        case 363: return decode_aidX3_(rtcm);
+        case 463: return decode_aidX3_(rtcm);
         case  64: return decode_aidX4_(rtcm);
         case  81: return decode_aidX1_(rtcm);
         case  82: return decode_aidX2_(rtcm);
         case  83: return decode_aidX3_(rtcm);
+        case 183: return decode_aidX3_(rtcm);
+        case 283: return decode_aidX3_(rtcm);
+        case 383: return decode_aidX3_(rtcm);
+        case 483: return decode_aidX3_(rtcm);
         case  84: return decode_aidX4_(rtcm);
         case 101: return decode_aidX1_(rtcm);
         case 102: return decode_aidX2_(rtcm);
         case 103: return decode_aidX3_(rtcm);
+        case 203: return decode_aidX3_(rtcm);
+        case 303: return decode_aidX3_(rtcm);
+        case 403: return decode_aidX3_(rtcm);
+        case 503: return decode_aidX3_(rtcm);
         case 104: return decode_aidX4_(rtcm);
     }
     trace(2,"rtcm3 4054: unsupported message subtype=%d\n",subtype);
