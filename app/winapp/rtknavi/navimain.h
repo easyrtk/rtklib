@@ -149,6 +149,8 @@ __published:
 	TLabel *VAState;
 	TPanel *PanelRest;
 	TPanel *PanelPL;
+	TLabel *LabelVAE;
+	TLabel *LabelHAE;
 	
 	void __fastcall FormCreate        (TObject *Sender);
 	void __fastcall FormShow          (TObject *Sender);
@@ -215,7 +217,8 @@ private:
 	void __fastcall UpdateSolType(void);
 	void __fastcall UpdateFont   (void);
 	void __fastcall UpdateTime   (void);
-	void __fastcall UpdatePos    (void);
+//	void __fastcall UpdatePos    (void);
+	void __fastcall UpdatePos    (int update=0);
 	void __fastcall UpdateStr    (void);
 	void __fastcall DrawPlot     (TImage *plot, int type, int freq);
 	void __fastcall UpdatePlot   (void);
@@ -260,6 +263,7 @@ public:
 	int TrkScale1,TrkScale2,TrkScale3,TrkScale4;
 	int BLMode1,BLMode2,BLMode3,BLMode4;
 	int MoniPort,OpenPort,AutoRun;
+    double allepoch,HAepoch,VAepoch,HAE,VAE;
 	
 	int PSol,PSolS,PSolE,Nsat[2],SolCurrentStat;
 	int Sat[2][MAXSAT],Snr[2][MAXSAT][NFREQ],Vsat[2][MAXSAT];

@@ -425,13 +425,13 @@ object MainForm: TMainForm
           Left = 5
           Top = 136
           Width = 240
-          Height = 120
+          Height = 180
           BevelOuter = bvNone
           BorderStyle = bsSingle
           TabOrder = 2
           object HAState: TLabel
             Left = 120
-            Top = 66
+            Top = 69
             Width = 49
             Height = 17
             Alignment = taCenter
@@ -447,7 +447,7 @@ object MainForm: TMainForm
           end
           object LabelHA: TLabel
             Left = 15
-            Top = 66
+            Top = 69
             Width = 134
             Height = 17
             AutoSize = False
@@ -462,8 +462,8 @@ object MainForm: TMainForm
           end
           object LabelHPL: TLabel
             Left = 15
-            Top = 18
-            Width = 134
+            Top = 15
+            Width = 180
             Height = 17
             AutoSize = False
             Caption = #27700#24179#20445#25252#27700#24179' HPL: 0.0'
@@ -477,7 +477,7 @@ object MainForm: TMainForm
           end
           object LabelVA: TLabel
             Left = 15
-            Top = 90
+            Top = 96
             Width = 134
             Height = 17
             AutoSize = False
@@ -493,7 +493,7 @@ object MainForm: TMainForm
           object LabelVPL: TLabel
             Left = 15
             Top = 42
-            Width = 134
+            Width = 180
             Height = 17
             AutoSize = False
             Caption = #22402#30452#20445#25252#27700#24179' VPL: 0.0'
@@ -507,12 +507,42 @@ object MainForm: TMainForm
           end
           object VAState: TLabel
             Left = 120
-            Top = 90
+            Top = 96
             Width = 49
             Height = 17
             Alignment = taCenter
             AutoSize = False
             Caption = '0 '#27491#24120
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = clGray
+            Font.Height = -15
+            Font.Name = 'Tahoma'
+            Font.Style = []
+            ParentFont = False
+            Layout = tlCenter
+          end
+          object LabelVAE: TLabel
+            Left = 15
+            Top = 150
+            Width = 180
+            Height = 17
+            AutoSize = False
+            Caption = #22402#30452#21578#35686#21382#20803#32479#35745': 0.0%'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = clGray
+            Font.Height = -15
+            Font.Name = 'Tahoma'
+            Font.Style = []
+            ParentFont = False
+            Layout = tlCenter
+          end
+          object LabelHAE: TLabel
+            Left = 15
+            Top = 123
+            Width = 180
+            Height = 17
+            AutoSize = False
+            Caption = #27700#24179#21578#35686#21382#20803#32479#35745': 0.0%'
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clGray
             Font.Height = -15

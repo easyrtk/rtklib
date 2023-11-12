@@ -240,9 +240,9 @@ void __fastcall TMainForm::Panel21Resize(TObject *Sender)
 void __fastcall TMainForm::Panel211Resize(TObject *Sender)
 {
 	int H=Panel211->Height,w=Panel211->Width;
-	PanelPL   ->Top=H/2-60;       PanelPL   ->Left=w/2-120;
-	PanelSol  ->Top=H/2-60-15-140; PanelSol  ->Left=w/2-120;
-	PanelRest ->Top=H/2+60+15;     PanelRest ->Left=w/2-120;
+	PanelPL   ->Top=H/2-90;       PanelPL   ->Left=w/2-120;
+	PanelSol  ->Top=H/2-90-15-140; PanelSol  ->Left=w/2-120;
+	PanelRest ->Top=H/2+90+15;     PanelRest ->Left=w/2-120;
 
 	//PanelSol
 	int h=abs(Plabel2->Font->Height);
@@ -267,21 +267,28 @@ void __fastcall TMainForm::Panel211Resize(TObject *Sender)
 
 	//PanelPL
 	h=abs(LabelVPL->Font->Height);
-	int hPL,hhpl,hvpl,hha,hva;
+	int hPL,hhpl,hvpl,hha,hva,hhae,hvae;
 	hPL=PanelPL->Height;
-	hvpl=hPL/2-6-h;
-	hhpl=hvpl-h-12;
-	hha=hvpl+h+12;
-	hva=hha+h+12;
-	LabelHPL ->Top=hhpl;                       //18
-	LabelVPL ->Top=hvpl;                       //42
-	LabelHA  ->Top=hha; HAState ->Top=hha;     //66
-	LabelVA  ->Top=hva; VAState ->Top=hva;     //90
+	hha=hPL/2-7-h;
+	hvpl=hha-h-14;
+	hhpl=hvpl-h-14;
+	hva=hha+h+14;
+	hhae=hva+h+14;
+	hvae=hhae+h+14;
+
+	LabelHPL ->Top=hhpl;                       //15   24
+	LabelVPL ->Top=hvpl;                       //42   48
+	LabelHA  ->Top=hha; HAState ->Top=hha;     //69   72
+	LabelVA  ->Top=hva; VAState ->Top=hva;     //96   96
+	LabelHAE ->Top=hhae;                       //123  120
+	LabelVAE ->Top=hvae;                       //150  144
 
 	LabelHPL ->Left=15;
 	LabelVPL ->Left=15;
 	LabelHA  ->Left=15; HAState ->Left=105;
 	LabelVA  ->Left=15; VAState ->Left=105;
+	LabelHAE ->Left=15;
+	LabelVAE ->Left=15;
 
 	//PanelRest
 	h=abs(LabelRatio->Font->Height);
@@ -1218,6 +1225,9 @@ void __fastcall TMainForm::SvrStart(void)
 	PrcOpt.dRefRovenu[0]=RovAntDel[0];
 	PrcOpt.dRefRovenu[1]=RovAntDel[1];
 	PrcOpt.dRefRovenu[2]=RovAntDel[2];
+	allepoch=0;
+	HAepoch=0; HAE=0;
+    VAepoch=0; VAE=0;
 
     if (DebugTraceF>0) {
 		traceopen(TRACEFILE);
@@ -1399,7 +1409,11 @@ void __fastcall TMainForm::SvrStop(void)
     char *cmds[3]={0};
     int i,n,m,str;
     
-    trace(3,"SvrStop\n");
+	trace(3,"SvrStop\n");
+    /*lyj add*/
+    allepoch=0;
+	HAepoch=0; HAE=0;
+	VAepoch=0; VAE=0;
     
     for (i=0;i<3;i++) {
         str=rtksvr.stream[i].type;
@@ -1462,12 +1476,12 @@ void __fastcall TMainForm::TimerTimer(TObject *Sender)
     
     rtksvrunlock(&rtksvr);
     
-    if (update) {
-        UpdateTime();
-        UpdatePos();
+	if (update) {
+		UpdateTime();
+		UpdatePos(update);
         TimerInact=0;
     }
-    else {
+	else {
         if (++TimerInact*Timer->Interval>TIMEOUT) SolCurrentStat=0;
     }
     if (SolCurrentStat) {
@@ -1544,16 +1558,16 @@ void __fastcall TMainForm::UpdateFont(void)
 	TLabel *label[]={
 //		PlabelA,Plabel1,Plabel2,Plabel3,Pos1,Pos2,Pos3,Solution,LabelStd,LabelNSat,LabelHPL,LabelVPL,LabelVar
 		PlabelA,Plabel1,Plabel2,Plabel3,Pos1,Pos2,Pos3,Solution,LabelNEU,
-		LabelHPL,LabelVPL,LabelHA,LabelVA,HAState,VAState,
+		LabelHPL,LabelVPL,LabelHA,LabelVA,HAState,VAState,LabelHAE,LabelVAE,
 		LabelAge,LabelRatio,LabelNSat,LabelVar
 	};   //19
 	TColor color=label[7]->Font->Color;
 	int i;
     
     trace(4,"UpdateFont\n");
-	for (i=0;i<19;i++) label[i]->Font->Assign(PosFont);
+	for (i=0;i<21;i++) label[i]->Font->Assign(PosFont);
 	label[0]->Font->Size=9; label[7]->Font->Color=color;
-	for (i=0;i<19;i++) {
+	for (i=0;i<21;i++) {
 		label[i]->Font->Size=9; //label[i]->Font->Color=clGray;
 	}
 //	label[8]->Font->Size=8; label[8]->Font->Color=clGray;
@@ -1585,17 +1599,17 @@ void __fastcall TMainForm::UpdateTime(void)
     LabelTime->Caption=tstr;
 }
 // update solution display --------------------------------------------------
-void __fastcall TMainForm::UpdatePos(void)
+void __fastcall TMainForm::UpdatePos(int update)
 {
 	TLabel *label[]={
 		Plabel1,Plabel2,Plabel3,Pos1,Pos2,Pos3,LabelNEU,
-		LabelHPL,LabelVPL,HAState,VAState,
+		LabelHPL,LabelVPL,HAState,VAState,LabelHAE,LabelVAE,
 		LabelAge,LabelRatio,LabelNSat,LabelVar
 	};//15
 	UnicodeString sol[]={"----","固定解","浮点解","SBAS","DGPS","SINGLE","PPP"};
 //	UTF8String s[4],ext="";
 //	UnicodeString s_ch[8];
-	UnicodeString s[16],ext="";
+	UnicodeString s[18],ext="";
 	TColor color[]={clSilver,clGreen,CLORANGE,clFuchsia,clBlue,clRed,clTeal};
     gtime_t time;
 	double *rr=SolRov+PSol*3,*rb=SolRef+PSol*3,*qr=Qr+PSol*9,pos[3]={0},Qe[9]={0};
@@ -1603,6 +1617,7 @@ void __fastcall TMainForm::UpdatePos(void)
 	double dms1[3]={0},dms2[3]={0},bl[3]={0},enu[3]={0},pitch=0.0,yaw=0.0,len;
 	int i,stat=SolStat[PSol];
 	double randoxNumber = Random(100) / 1000.0 + 0.9; //随机数
+    double hpl,vpl;
 
 	trace(4,"UpdatePos\n");
 	for (i=0;i<3;i++) RefRovxyz[i]=RovPos[i];
@@ -1630,18 +1645,30 @@ void __fastcall TMainForm::UpdatePos(void)
     if (SolType==0) {
         if (norm(rr,3)>0.0) {
 			ecef2pos(rr,pos); covenu(pos,qr,Qe);//rr:xyz  pos:blh
+			hpl=SQRT(Qe[4]+Qe[0])*6;
+			vpl=SQRT(Qe[8])*6;
 			degtodms(pos[0]*R2D,dms1);
             degtodms(pos[1]*R2D,dms2);
 			if (SolOpt.height==1) pos[2]-=geoidh(pos); /* geodetic */
 			for(i=0;i<3;i++) dxyz[i]=rr[i]-RefRovxyz[i];
 			ecef2enu(RefRovblh, dxyz, denu);
-//			if(norm(denu,3)>100) {
-//				for(i=0;i<3;i++) denu[i]=9.999;
-//			}
-			if (abs(denu[0])>0.3||abs(denu[1])>0.3) s[9]="异常";
+            if (update) allepoch++;
+			if (abs(denu[0])>hpl||abs(denu[1])>hpl) {
+				s[9]="异常";
+				if (update) {
+					HAepoch++;
+					if(allepoch) HAE=HAepoch/allepoch*100;
+				}
+			}
 			else s[9]="正常";
 
-			if (abs(denu[2])>1) s[10]="异常";
+			if (abs(denu[2])>vpl) {
+				s[10]="异常";
+				if (update) {
+					VAepoch++;
+					if(allepoch) VAE=VAepoch/allepoch*100;
+				}
+			}
 			else s[10]="正常";
 		}
 		s[0]=pos[0]<0?"S:":"纬    度:"; s[1]=pos[1]<0?"W:":"经    度:";
@@ -1650,27 +1677,40 @@ void __fastcall TMainForm::UpdatePos(void)
 		s[3].sprintf(L"%.0f\u00B0 %02.0f' %07.4f\"",fabs(dms1[0]),dms1[1],dms1[2]);
 		s[4].sprintf(L"%.0f\u00B0 %02.0f' %07.4f\"",fabs(dms2[0]),dms2[1],dms2[2]);
 		s[5].sprintf(L"%.3f m",pos[2]);
-//		s[6].sprintf(L"标准差  E:%6.3f   N:%6.3f   U:%6.3f m",SQRT(Qe[0]),SQRT(Qe[4]),SQRT(Qe[8]));
-//		if(denu[0]>10||denu[1]>10||denu[2]>10) {
-//			s[6].sprintf(L"偏    差:  E:%6.3f   N:%6.3f   U:%6.3f [m]",denu[0],denu[1],denu[2]);
-//		}
 		s[6].sprintf(L"偏    差:  E:%6.3f   N:%6.3f   U:%6.3f [m]",denu[0],denu[1],denu[2]);
-		s[7].sprintf(L"水平保护水平 HPL: %4.3f",SQRT(Qe[4]+Qe[0])*6);
-		s[8].sprintf(L"垂直保护水平 VPL: %4.3f",SQRT(Qe[8])*6);
+		s[7].sprintf(L"水平保护水平 HPL: %4.3f",hpl);
+		s[8].sprintf(L"垂直保护水平 VPL: %4.3f",vpl);
+		s[11].sprintf(L"水平告警历元统计: %3.1f %",HAE);
+		s[12].sprintf(L"垂直告警历元统计: %3.1f %",VAE);
 	}
 	else if (SolType==1) {
 		if (norm(rr,3)>0.0) {
 			ecef2pos(rr,pos); covenu(pos,qr,Qe);
+			hpl=SQRT(Qe[4]+Qe[0])*6;
+			vpl=SQRT(Qe[8])*6;
 			if (SolOpt.height==1) pos[2]-=geoidh(pos); /* geodetic */
 			for(i=0;i<3;i++) dxyz[i]=rr[i]-RefRovxyz[i];
 			ecef2enu(RefRovblh, dxyz, denu);
 //			if(norm(denu,3)>100) {
 //				for(i=0;i<3;i++) denu[i]=9.999;
 //			}
-			if (abs(denu[0])>0.3||abs(denu[1])>0.3) s[9]="异常";
+			if (update) allepoch++;
+			if (abs(denu[0])>hpl||abs(denu[1])>hpl) {
+				s[9]="异常";
+				if (update) {
+					HAepoch++;
+					if(allepoch) HAE=HAepoch/allepoch*100;
+				}
+			}
 			else s[9]="正常";
 
-			if (abs(denu[2])>1) s[10]="异常";
+			if (abs(denu[2])>vpl) {
+				s[10]="异常";
+				if (update) {
+					VAepoch++;
+					if(allepoch) VAE=VAepoch/allepoch*100;
+				}
+			}
 			else s[10]="正常";
         }
 		s[0]=pos[0]<0?"S:":"纬    度:"; s[1]=pos[1]<0?"W:":"经    度:";
@@ -1680,20 +1720,38 @@ void __fastcall TMainForm::UpdatePos(void)
 		s[5].sprintf(L"%.3f m",pos[2]);
 //		s[6].sprintf(L"标准差  E:%6.3f   N:%6.3f   U:%6.3f m",SQRT(Qe[0]),SQRT(Qe[4]),SQRT(Qe[8]));
 		s[6].sprintf(L"偏    差:  E:%6.3f   N:%6.3f   U:%6.3f [m]",denu[0],denu[1],denu[2]);
-		s[7].sprintf(L"水平保护水平 HPL: %4.3f",SQRT(Qe[4]+Qe[0])*6);
-		s[8].sprintf(L"垂直保护水平 VPL: %4.3f",SQRT(Qe[8])*6);
+		s[7].sprintf(L"水平保护水平 HPL: %4.3f",hpl);
+		s[8].sprintf(L"垂直保护水平 VPL: %4.3f",vpl);
+		s[11].sprintf(L"水平告警历元统计: %3.1f %",HAE);
+		s[12].sprintf(L"垂直告警历元统计: %3.1f %",VAE);
 	}
 	else if (SolType==2) {
 		if (norm(rr,3)>0.0) {
+			ecef2pos(rr,pos); covenu(pos,qr,Qe);
+			hpl=SQRT(Qe[4]+Qe[0])*6;
+			vpl=SQRT(Qe[8])*6;
 			for(i=0;i<3;i++) dxyz[i]=rr[i]-RefRovxyz[i];
 			ecef2enu(RefRovblh, dxyz, denu);
 //            if(norm(denu,3)>100) {
 //				for(i=0;i<3;i++) denu[i]=9.999;
 //			}
-			if (abs(denu[0])>0.3||abs(denu[1])>0.3) s[9]="异常";
+            if (update) allepoch++;
+			if (abs(denu[0])>hpl||abs(denu[1])>hpl) {
+				s[9]="异常";
+				if (update) {
+					HAepoch++;
+					if(allepoch) HAE=HAepoch/allepoch*100;
+				}
+			}
 			else s[9]="正常";
 
-			if (abs(denu[2])>1) s[10]="异常";
+			if (abs(denu[2])>vpl) {
+				s[10]="异常";
+				if (update) {
+					VAepoch++;
+					if(allepoch) VAE=VAepoch/allepoch*100;
+				}
+			}
 			else s[10]="正常";
         }
 		s[0]="    X:"; s[1]="    Y:"; s[2]="    Z:";
@@ -1702,23 +1760,37 @@ void __fastcall TMainForm::UpdatePos(void)
 		s[5].sprintf(L"%.3f m",rr[2]);
 //		s[6].sprintf(L"标准差  X:%6.3f   Y:%6.3f   Z:%6.3f m",SQRT(qr[0]),SQRT(qr[4]),SQRT(qr[8]));
 		s[6].sprintf(L"偏    差:  E:%6.3f   N:%6.3f   U:%6.3f [m]",denu[0],denu[1],denu[2]);
-		s[7].sprintf(L"水平保护水平 HPL: %4.3f",SQRT(qr[0]+qr[4])*6);
-		s[8].sprintf(L"垂直保护水平 VPL: %4.3f",SQRT(qr[8])*6);
+		s[7].sprintf(L"水平保护水平 HPL: %4.3f",hpl);
+		s[8].sprintf(L"垂直保护水平 VPL: %4.3f",vpl);
+		s[11].sprintf(L"水平告警历元统计: %3.1f %",HAE);
+		s[12].sprintf(L"垂直告警历元统计: %3.1f %",VAE);
 	}
     else if (SolType==3) {
         if (len>0.0) {
-            ecef2pos(rb,pos); ecef2enu(pos,bl,enu); covenu(pos,qr,Qe);
+			ecef2pos(rb,pos); ecef2enu(pos,bl,enu); covenu(pos,qr,Qe);
+			hpl=SQRT(Qe[4]+Qe[0])*6;
+			vpl=SQRT(Qe[8])*6;
 		}
+        if (update) allepoch++;
 		if (norm(rr,3)>0.0) {
 			for(i=0;i<3;i++) dxyz[i]=rr[i]-RefRovxyz[i];
 			ecef2enu(RefRovblh, dxyz, denu);
-//			if(norm(denu,3)>100) {
-//				for(i=0;i<3;i++) denu[i]=9.999;
-//			}
-			if (abs(denu[0])>0.3||abs(denu[1])>0.3) s[9]="异常";
+			if (abs(denu[0])>hpl||abs(denu[1])>hpl) {
+				s[9]="异常";
+				if (update) {
+					HAepoch++;
+					if(allepoch) HAE=HAepoch/allepoch*100;
+				}
+			}
 			else s[9]="正常";
 
-			if (abs(denu[2])>1) s[10]="异常";
+			if (abs(denu[2])>vpl) {
+				s[10]="异常";
+				if (update) {
+					VAepoch++;
+					if(allepoch) VAE=VAepoch/allepoch*100;
+				}
+			}
 			else s[10]="正常";
         }
 		s[0]="    东:"; s[1]="    北:"; s[2]="    天:";
@@ -1727,12 +1799,16 @@ void __fastcall TMainForm::UpdatePos(void)
 		s[5].sprintf(L"%.3f m",enu[2]);
 //		s[6].sprintf(L"标准差  E:%6.3f   N:%6.3f   U:%6.3f m",SQRT(Qe[0]),SQRT(Qe[4]),SQRT(Qe[8]));
 		s[6].sprintf(L"偏    差:  E:%6.3f   N:%6.3f   U:%6.3f [m]",denu[0],denu[1],denu[2]);
-		s[7].sprintf(L"水平保护水平 HPL: %4.3f",SQRT(Qe[4]+Qe[0])*6);
-		s[8].sprintf(L"垂直保护水平 VPL: %4.3f",SQRT(Qe[8])*6);
+		s[7].sprintf(L"水平保护水平 HPL: %4.3f",hpl);
+		s[8].sprintf(L"垂直保护水平 VPL: %4.3f",vpl);
+		s[11].sprintf(L"水平告警历元统计: %3.1f %",HAE);
+		s[12].sprintf(L"垂直告警历元统计: %3.1f %",VAE);
 	}
     else {
 		if (len>0.0) {
-            ecef2pos(rb,pos); ecef2enu(pos,bl,enu); covenu(pos,qr,Qe);
+			ecef2pos(rb,pos); ecef2enu(pos,bl,enu); covenu(pos,qr,Qe);
+            hpl=SQRT(Qe[4]+Qe[0])*6;
+			vpl=SQRT(Qe[8])*6;
 			pitch=asin(enu[2]/len);
             yaw=atan2(enu[0],enu[1]); if (yaw<0.0) yaw+=2.0*PI;
 		}
@@ -1742,10 +1818,23 @@ void __fastcall TMainForm::UpdatePos(void)
 //			if(norm(denu,3)>100) {
 //				for(i=0;i<3;i++) denu[i]=9.999;
 //			}
-			if (abs(denu[0])>0.3||abs(denu[1])>0.3) s[9]="异常";
+            if (update) allepoch++;
+			if (abs(denu[0])>hpl||abs(denu[1])>hpl) {
+				s[9]="异常";
+				if (update) {
+					HAepoch++;
+					if(allepoch) HAE=HAepoch/allepoch*100;
+				}
+			}
 			else s[9]="正常";
 
-			if (abs(denu[2])>1) s[10]="异常";
+			if (abs(denu[2])>vpl) {
+				s[10]="异常";
+				if (update) {
+					VAepoch++;
+					if(allepoch) VAE=VAepoch/allepoch*100;
+				}
+			}
 			else s[10]="正常";
         }
 		s[0]="俯    仰:"; s[1]="航    向:"; s[2]="长    度:";
@@ -1754,15 +1843,17 @@ void __fastcall TMainForm::UpdatePos(void)
 		s[5].sprintf(L"%.3f m",len);
 //		s[6].sprintf(L"标准差  E:%6.3f   N:%6.3f   U:%6.3f m",SQRT(Qe[0]),SQRT(Qe[4]),SQRT(Qe[8]));
 		s[6].sprintf(L"偏    差:  E:%6.3f   N:%6.3f   U:%6.3f [m]",denu[0],denu[1],denu[2]);
-		s[7].sprintf(L"水平保护水平 HPL: %4.3f",SQRT(Qe[4]+Qe[0])*6);
-		s[8].sprintf(L"垂直保护水平 VPL: %4.3f",SQRT(Qe[8])*6);
+		s[7].sprintf(L"水平保护水平 HPL: %4.3f",hpl);
+		s[8].sprintf(L"垂直保护水平 VPL: %4.3f",vpl);
+		s[11].sprintf(L"水平告警历元统计: %3.1f %",HAE);
+		s[12].sprintf(L"垂直告警历元统计: %3.1f %",VAE);
 	}
-	s[11].sprintf(L"龄    期     age: %4.1f [s]",Age[PSol]);
-	s[12].sprintf(L"比    率     ratio: %4.1f",Ratio[PSol]);
-	s[13].sprintf(L"卫星数     nsat: %2d",Nvsat[PSol]);
-	s[14].sprintf(L"验后方差 var: %4.3f",randoxNumber);
-	if (Ratio[PSol]>0.0) s[15].sprintf(L" R: %4.1f",Ratio[PSol]);
-	for (i=0;i<15;i++)  label[i]->Caption=s[i];
+	s[13].sprintf(L"龄    期     age: %4.1f [s]",Age[PSol]);
+	s[14].sprintf(L"比    率     ratio: %4.1f",Ratio[PSol]);
+	s[15].sprintf(L"卫星数     nsat: %2d",Nvsat[PSol]);
+	s[16].sprintf(L"验后方差 var: %4.3f",randoxNumber);
+	if (Ratio[PSol]>0.0) s[17].sprintf(L" R: %4.1f",Ratio[PSol]);
+	for (i=0;i<17;i++)  label[i]->Caption=s[i];
 	for (i=3;i<6;i++) {
 		label[i]->Font->Color=PrcOpt.mode==PMODE_MOVEB&&SolType<=2?clGray:clBlack;
 	}
@@ -1774,7 +1865,7 @@ void __fastcall TMainForm::UpdatePos(void)
 	SolS->Font->Color=Solution->Font->Color;
 	SolQ->Caption=ext+L" "+label[0]->Caption+L" "+label[3]->Caption+L" "+
 				  label[1]->Caption+L" "+label[4]->Caption+L" "+
-				  label[2]->Caption+L" "+label[5]->Caption+s[15];
+				  label[2]->Caption+L" "+label[5]->Caption+s[17];
 }
 // update stream status indicators ------------------------------------------
 void __fastcall TMainForm::UpdateStr(void)
