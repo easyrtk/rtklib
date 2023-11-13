@@ -13,6 +13,7 @@
 #pragma package(smart_init)
 #pragma resource "*.dfm"
 TOutputStrDialog *OutputStrDialog;
+char outrtcm[1024];
 //---------------------------------------------------------------------------
 __fastcall TOutputStrDialog::TOutputStrDialog(TComponent* Owner)
 	: TForm(Owner)
@@ -36,6 +37,8 @@ void __fastcall TOutputStrDialog::FormShow(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TOutputStrDialog::BtnOkClick(TObject *Sender)
 {
+	char* ptr,*filePath;
+    int idb;
 	StreamC[0]  =Stream1C->Checked;
 	StreamC[1]  =Stream2C->Checked;
 	Stream[0]   =Stream1->ItemIndex;
@@ -44,6 +47,11 @@ void __fastcall TOutputStrDialog::BtnOkClick(TObject *Sender)
 	Format[1]   =Format2->ItemIndex;
 	Paths [0][2]=SetFilePath(FilePath1->Text);
 	Paths [1][2]=SetFilePath(FilePath2->Text);
+	strcpy(outrtcm,Paths[0][2].c_str()); //获取输出结果文件路径，构造输出rtcm路径
+	ptr=strrchr(outrtcm,'\\');
+	idb = ptr - outrtcm;
+	outrtcm[idb+1]='\0';
+	strcat(outrtcm, "VRSInput.txt");
 	SwapInterval=SwapIntv->Text;
 	OutTimeTag  =TimeTagC->Checked;
 }

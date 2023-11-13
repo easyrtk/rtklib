@@ -1146,9 +1146,16 @@ static int outecef(uint8_t *buff, const char *s, const sol_t *sol,
     double RefRovxyz[3],RefRovblh[3],dxyz[3],denu[3]={0},dRefRovxyz[3];
 	char *soltype;
 	int HA,VA;
-    int i;
+	int i;
+    double pos[3],P[9],Q[9],hpl,vpl;
     
 	trace(3,"outecef:\n");
+
+	ecef2pos(sol->rr,pos);
+    soltocov(sol,P);
+	covenu(pos,P,Q);
+    hpl=SQRT(Q[0]+Q[4])*6;
+	vpl=SQRT(Q[8])*6;
 
 	/*lyj add : compute denu*/
 	for (i=0;i<3;i++) RefRovxyz[i]=sol->RefRovxyz[i];
@@ -1160,9 +1167,10 @@ static int outecef(uint8_t *buff, const char *s, const sol_t *sol,
 	}
     for(i=0;i<3;i++) dxyz[i]=sol->rr[i]-RefRovxyz[i];
 	ecef2enu(RefRovblh, dxyz, denu); /*计算得到denu*/
-    if (abs(denu[0])>0.3||abs(denu[1])>0.3) HA=1;
+
+	if (fabs(denu[0])>hpl||fabs(denu[1])>hpl) HA=1;
 	else HA=0;
-	if (abs(denu[2])>1) VA=1;
+	if (fabs(denu[2])>vpl) VA=1;
 	else VA=0;
 	switch (sol->stat) {
 	case 1: soltype="fixed"; break;
@@ -1179,7 +1187,7 @@ static int outecef(uint8_t *buff, const char *s, const sol_t *sol,
 				 "%s%3d%s%6.2f%s%6.1f%s%8.4f%s%6s",
 			   s,sep,sol->rr[0],sep,sol->rr[1],sep,sol->rr[2],
 			   sep,denu[0],sep,denu[1],sep,denu[2],
-			   sep,sol->HPL,sep,sol->VPL,sep,HA,sep,VA,
+			   sep,hpl,sep,vpl,sep,HA,sep,VA,
 			   sep,sol->ns,sep,sol->age,sep,sol->ratio,sep,sol->var,sep,soltype);
 //    p+=sprintf(p,"%s%s%14.4f%s%14.4f%s%14.4f%s%3d%s%3d%s%8.4f%s%8.4f%s%8.4f%s"
 //               "%8.4f%s%8.4f%s%8.4f%s%6.2f%s%6.1f",
@@ -1208,6 +1216,7 @@ static int outpos(uint8_t *buff, const char *s, const sol_t *sol,
 	char *p=(char *)buff;
 	double RefRovxyz[3],RefRovblh[3],dxyz[3],denu[3]={0},dRefRovxyz[3];
 	char *soltype;
+    double hpl,vpl;
 	int HA,VA;
     int i;
     
@@ -1216,6 +1225,8 @@ static int outpos(uint8_t *buff, const char *s, const sol_t *sol,
     ecef2pos(sol->rr,pos);
     soltocov(sol,P);
 	covenu(pos,P,Q);
+    hpl=SQRT(Q[0]+Q[4])*6;
+	vpl=SQRT(Q[8])*6;
 
 	/*lyj add : compute denu*/
 	for (i=0;i<3;i++) RefRovxyz[i]=sol->RefRovxyz[i];
@@ -1227,9 +1238,10 @@ static int outpos(uint8_t *buff, const char *s, const sol_t *sol,
 	}
     for(i=0;i<3;i++) dxyz[i]=sol->rr[i]-RefRovxyz[i];
 	ecef2enu(RefRovblh, dxyz, denu); /*计算得到denu*/
-    if (abs(denu[0])>0.3||abs(denu[1])>0.3) HA=1;
+
+	if (fabs(denu[0])>hpl||fabs(denu[1])>hpl) HA=1;
 	else HA=0;
-	if (abs(denu[2])>1) VA=1;
+	if (fabs(denu[2])>vpl) VA=1;
 	else VA=0;
 	switch (sol->stat) {
 	case 1: soltype="fixed"; break;
@@ -1258,7 +1270,7 @@ static int outpos(uint8_t *buff, const char *s, const sol_t *sol,
 				 "%s%8.4f%s%8.4f%s%3d%s%3d"
 				 "%s%3d%s%6.2f%s%6.1f%s%8.4f%s%6s",
 			   sep,pos[2],sep,denu[0],sep,denu[1],sep,denu[2],
-			   sep,sol->HPL,sep,sol->VPL,sep,HA,sep,VA,
+			   sep,hpl,sep,vpl,sep,HA,sep,VA,
 			   sep,sol->ns,sep,sol->age,sep,sol->ratio,sep,sol->var,sep,soltype);
 //	p+=sprintf(p,"%s%10.4f%s%3d%s%3d%s%8.4f%s%8.4f%s%8.4f%s%8.4f%s%8.4f%s%8.4f"
 //			   "%s%6.2f%s%6.1f",
@@ -1303,9 +1315,9 @@ static int outenu(uint8_t *buff, const char *s, const sol_t *sol,
 	}
     for(i=0;i<3;i++) dxyz[i]=sol->rr[i]-RefRovxyz[i];
 	ecef2enu(RefRovblh, dxyz, denu); /*计算得到denu*/
-    if (abs(denu[0])>0.3||abs(denu[1])>0.3) HA=1;
+	if (fabs(denu[0])>0.3||fabs(denu[1])>0.3) HA=1;
 	else HA=0;
-	if (abs(denu[2])>1) VA=1;
+	if (fabs(denu[2])>1) VA=1;
 	else VA=0;
 	switch (sol->stat) {
 	case 1: soltype="fixed"; break;

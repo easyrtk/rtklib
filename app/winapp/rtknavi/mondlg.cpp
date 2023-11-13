@@ -53,6 +53,7 @@ __fastcall TMonitorDialog::TMonitorDialog(TComponent* Owner)
 void __fastcall TMonitorDialog::FormShow(TObject *Sender)
 {
 //	ft=fopen("D:\\GeoPnt\\rtkNaviCode\\rtklib_cmcc\\rtklib\\app\\winapp\\rtknavi\\Out\\baseInput.txt","a");
+	ft=fopen(outrtcm,"a");
 	TypeF=Type->ItemIndex;
 	Label->Caption="";
 	ClearTable();
@@ -60,7 +61,7 @@ void __fastcall TMonitorDialog::FormShow(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TMonitorDialog::FormClose(TObject *Sender, TCloseAction &Action)
 {
-//    fclose(ft);
+    fclose(ft);
 	free_rtcm(&rtcm);
 	free_raw(&raw);
 	Release();
@@ -299,7 +300,7 @@ void __fastcall TMonitorDialog::AddConsole(uint8_t *msg, int len, int mode)
 		if (*(p-1)=='\n') {
 			ConBuff->Strings[ConBuff->Count-1]=buff;
 			ConBuff->Add("");
-//			if(!mode)  fprintf(ft,"%s",buff);
+			if(mode)  fprintf(ft,"%s",buff);
 			*(p=buff)=0;
 			if (ConBuff->Count>=MAXLINE) ConBuff->Delete(0);
 		}

@@ -1653,7 +1653,7 @@ void __fastcall TMainForm::UpdatePos(int update)
 			for(i=0;i<3;i++) dxyz[i]=rr[i]-RefRovxyz[i];
 			ecef2enu(RefRovblh, dxyz, denu);
             if (update) allepoch++;
-			if (abs(denu[0])>hpl||abs(denu[1])>hpl) {
+			if (fabs(denu[0])>hpl||fabs(denu[1])>hpl) {
 				s[9]="异常";
 				if (update) {
 					HAepoch++;
@@ -1662,7 +1662,7 @@ void __fastcall TMainForm::UpdatePos(int update)
 			}
 			else s[9]="正常";
 
-			if (abs(denu[2])>vpl) {
+			if (fabs(denu[2])>vpl) {
 				s[10]="异常";
 				if (update) {
 					VAepoch++;
@@ -1695,7 +1695,7 @@ void __fastcall TMainForm::UpdatePos(int update)
 //				for(i=0;i<3;i++) denu[i]=9.999;
 //			}
 			if (update) allepoch++;
-			if (abs(denu[0])>hpl||abs(denu[1])>hpl) {
+			if (fabs(denu[0])>hpl||fabs(denu[1])>hpl) {
 				s[9]="异常";
 				if (update) {
 					HAepoch++;
@@ -1704,7 +1704,7 @@ void __fastcall TMainForm::UpdatePos(int update)
 			}
 			else s[9]="正常";
 
-			if (abs(denu[2])>vpl) {
+			if (fabs(denu[2])>vpl) {
 				s[10]="异常";
 				if (update) {
 					VAepoch++;
@@ -1736,7 +1736,7 @@ void __fastcall TMainForm::UpdatePos(int update)
 //				for(i=0;i<3;i++) denu[i]=9.999;
 //			}
             if (update) allepoch++;
-			if (abs(denu[0])>hpl||abs(denu[1])>hpl) {
+			if (fabs(denu[0])>hpl||fabs(denu[1])>hpl) {
 				s[9]="异常";
 				if (update) {
 					HAepoch++;
@@ -1745,7 +1745,7 @@ void __fastcall TMainForm::UpdatePos(int update)
 			}
 			else s[9]="正常";
 
-			if (abs(denu[2])>vpl) {
+			if (fabs(denu[2])>vpl) {
 				s[10]="异常";
 				if (update) {
 					VAepoch++;
@@ -1775,7 +1775,7 @@ void __fastcall TMainForm::UpdatePos(int update)
 		if (norm(rr,3)>0.0) {
 			for(i=0;i<3;i++) dxyz[i]=rr[i]-RefRovxyz[i];
 			ecef2enu(RefRovblh, dxyz, denu);
-			if (abs(denu[0])>hpl||abs(denu[1])>hpl) {
+			if (fabs(denu[0])>hpl||fabs(denu[1])>hpl) {
 				s[9]="异常";
 				if (update) {
 					HAepoch++;
@@ -1784,7 +1784,7 @@ void __fastcall TMainForm::UpdatePos(int update)
 			}
 			else s[9]="正常";
 
-			if (abs(denu[2])>vpl) {
+			if (fabs(denu[2])>vpl) {
 				s[10]="异常";
 				if (update) {
 					VAepoch++;
@@ -1819,7 +1819,7 @@ void __fastcall TMainForm::UpdatePos(int update)
 //				for(i=0;i<3;i++) denu[i]=9.999;
 //			}
             if (update) allepoch++;
-			if (abs(denu[0])>hpl||abs(denu[1])>hpl) {
+			if (fabs(denu[0])>hpl||fabs(denu[1])>hpl) {
 				s[9]="异常";
 				if (update) {
 					HAepoch++;
@@ -1828,7 +1828,7 @@ void __fastcall TMainForm::UpdatePos(int update)
 			}
 			else s[9]="正常";
 
-			if (abs(denu[2])>vpl) {
+			if (fabs(denu[2])>vpl) {
 				s[10]="异常";
 				if (update) {
 					VAepoch++;
