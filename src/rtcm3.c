@@ -2641,7 +2641,7 @@ static int decode_aidX3_(rtcm_t* rtcm)
     if (ret)
     {
         if (rtcm->outtype) {
-			sprintf(rtcm->cmccmsgtype + strlen(rtcm->cmccmsgtype), " nsat=%d tow=%6.0f sys=%i sync=%i idx=%d rcv=%i", rtcm->naid_atm, rtcm->tow_atm, sys, sync, idx, rcv);
+			sprintf(rtcm->cmccmsgtype + strlen(rtcm->cmccmsgtype), " natm=%d tow=%6.0f sys=%i sync=%i idx=%d rcv=%i", rtcm->naid_atm, rtcm->tow_atm, sys, sync, idx, rcv);
 		}
     }
     return ret;
@@ -2657,7 +2657,7 @@ static int decode_aidX4_(rtcm_t* rtcm)
     if (ret)
     {
         if (rtcm->outtype) {
-			sprintf(rtcm->cmccmsgtype + strlen(rtcm->cmccmsgtype), " nsat=%d tow=%6.0f sys=%i sync=%i idx=%d rcv=%i", rtcm->naid_atm, rtcm->tow_atm, sys, sync, idx, rcv);
+			sprintf(rtcm->cmccmsgtype + strlen(rtcm->cmccmsgtype), " natm=%d tow=%6.0f sys=%i sync=%i idx=%d rcv=%i", rtcm->naid_atm, rtcm->tow_atm, sys, sync, idx, rcv);
 		}
     }
     return ret;
