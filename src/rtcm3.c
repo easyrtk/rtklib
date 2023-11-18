@@ -2611,7 +2611,7 @@ static int decode_aidX1_(rtcm_t* rtcm)
     if (ret)
     {
         if (rtcm->outtype) {
-            sprintf(rtcm->cmccmsgtype + strlen(rtcm->cmccmsgtype), " nsat=%d tow=%6.0f sys=%i sync=%i", rtcm->naid_sat, rtcm->tow_sat, sys, sync);
+			sprintf(rtcm->cmccmsgtype + strlen(rtcm->cmccmsgtype), " nsat=%d tow=%6.0f sys=%i sync=%i", rtcm->naid_sat, rtcm->tow_sat, sys, sync);
         }
     }
     return ret;
@@ -2635,16 +2635,16 @@ static int decode_aidX3_(rtcm_t* rtcm)
 {
     int sys = 0;
     int sync = 0;
-    int idx = 0;
-    int rcv = 0;
+	int idx = 0;
+	int rcv = 0;
     int ret = decode_aidX3(rtcm->buff, rtcm->len + 3, rtcm->aid_atm, &rtcm->naid_atm, MAXMAC*MAXOBS, &rtcm->tow_atm, &sys, &sync, &idx, &rcv);
     if (ret)
     {
-        if (rtcm->outtype) {
+		if (rtcm->outtype) {
 			sprintf(rtcm->cmccmsgtype + strlen(rtcm->cmccmsgtype), " natm=%d tow=%6.0f sys=%i sync=%i idx=%d rcv=%i", rtcm->naid_atm, rtcm->tow_atm, sys, sync, idx, rcv);
 		}
     }
-    return ret;
+	return ret;
 }
 /* 4054 subtype X4 */
 static int decode_aidX4_(rtcm_t* rtcm)
@@ -2684,14 +2684,14 @@ static int decode_type4054(rtcm_t *rtcm)
         case   6: return decode_aid5__(rtcm);
         case   7: return decode_aid5__(rtcm);
         case   8: return decode_aid5__(rtcm);
-        case  21: return decode_aidX1_(rtcm);
-        case  22: return decode_aidX2_(rtcm);
-        case  23: return decode_aidX3_(rtcm);
-        case 123: return decode_aidX3_(rtcm);
-        case 223: return decode_aidX3_(rtcm);
-        case 323: return decode_aidX3_(rtcm);
-        case 423: return decode_aidX3_(rtcm);
-        case  24: return decode_aidX4_(rtcm);
+		case  21: return decode_aidX1_(rtcm);
+		case  22: return decode_aidX2_(rtcm);
+		case  23: return decode_aidX3_(rtcm);
+		case 123: return decode_aidX3_(rtcm);
+		case 223: return decode_aidX3_(rtcm);
+		case 323: return decode_aidX3_(rtcm);
+		case 423: return decode_aidX3_(rtcm);
+		case  24: return decode_aidX4_(rtcm);
         case  41: return decode_aidX1_(rtcm);
         case  42: return decode_aidX2_(rtcm);
         case  43: return decode_aidX3_(rtcm);

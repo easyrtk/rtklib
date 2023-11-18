@@ -1324,7 +1324,6 @@ extern const sbsigpband_t igpband1[9][8]; /* SBAS IGP band 0-8 */
 extern const sbsigpband_t igpband2[2][5]; /* SBAS IGP band 9-10 */
 extern const char *formatstrs[];     /* stream format strings */
 extern opt_t sysopts[];              /* system options table */
-extern char outrtcm[1024];
 
 /* satellites, systems, codes functions --------------------------------------*/
 EXPORT int  satno   (int sys, int prn);

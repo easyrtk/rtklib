@@ -4,8 +4,8 @@ object OutputStrDialog: TOutputStrDialog
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = #36755#20986#27969
-  ClientHeight = 158
-  ClientWidth = 393
+  ClientHeight = 160
+  ClientWidth = 387
   Color = clWhite
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
