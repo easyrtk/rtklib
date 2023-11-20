@@ -131,12 +131,12 @@ static void septime(double t, double *t1, double *t2, double *t3)
 /* solution to covariance ----------------------------------------------------*/
 static void soltocov(const sol_t *sol, double *P)
 {
-    P[0]     =sol->qr[0]; /* xx or ee */
-    P[4]     =sol->qr[1]; /* yy or nn */
-    P[8]     =sol->qr[2]; /* zz or uu */
-    P[1]=P[3]=sol->qr[3]; /* xy or en */
-    P[5]=P[7]=sol->qr[4]; /* yz or nu */
-    P[2]=P[6]=sol->qr[5]; /* zx or ue */
+    P[0]     =fabs(sol->qr[0]); /* xx or ee */
+    P[4]     =fabs(sol->qr[1]); /* yy or nn */
+    P[8]     =fabs(sol->qr[2]); /* zz or uu */
+    P[1]=P[3]=0;/*sol->qr[3];*/ /* xy or en */
+    P[5]=P[7]=0;/*sol->qr[4];*/ /* yz or nu */
+    P[2]=P[6]=0;/*sol->qr[5];*/ /* zx or ue */
 }
 /* covariance to solution ----------------------------------------------------*/
 static void covtosol(const double *P, sol_t *sol)
@@ -1225,8 +1225,11 @@ static int outpos(uint8_t *buff, const char *s, const sol_t *sol,
     ecef2pos(sol->rr,pos);
     soltocov(sol,P);
 	covenu(pos,P,Q);
-    hpl=SQRT(Q[0]+Q[4])*6;
-	vpl=SQRT(Q[8])*6;
+    Q[0]+=0.005*0.005; /* add 5 mm in N,E, and U */
+    Q[4]+=0.005*0.005;
+    Q[8]+=0.005*0.005;
+    hpl=SQRT(Q[0]+Q[4])*6.5; /* change to 6.5 from 6.0 */
+	vpl=SQRT(Q[8])*7.5;      /* change to 7.5 from 6.0 */
 
 	/*lyj add : compute denu*/
 	for (i=0;i<3;i++) RefRovxyz[i]=sol->RefRovxyz[i];
@@ -1332,6 +1335,11 @@ static int outenu(uint8_t *buff, const char *s, const sol_t *sol,
     ecef2pos(rb,pos);
     soltocov(sol,P);
     covenu(pos,P,Q);
+    Q[0]+=0.005*0.005; /* add 5 mm in N,E, and U */
+    Q[4]+=0.005*0.005;
+    Q[8]+=0.005*0.005;
+    /*hpl=SQRT(Q[0]+Q[4])*6.5;*/
+	/*vpl=SQRT(Q[8])*7.5;*/
 	ecef2enu(pos,rr,enu);
 
 	p+=sprintf(p,"%s%s%14.4f%s%14.4f%s%14.4f"
