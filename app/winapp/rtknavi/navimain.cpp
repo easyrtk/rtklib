@@ -1225,9 +1225,9 @@ void __fastcall TMainForm::SvrStart(void)
 	PrcOpt.dRefRovenu[0]=RovAntDel[0];
 	PrcOpt.dRefRovenu[1]=RovAntDel[1];
 	PrcOpt.dRefRovenu[2]=RovAntDel[2];
-	allepoch=0;
-	HAepoch=0; HAE=0;
-    VAepoch=0; VAE=0;
+	allepoch=0.0;
+	HAepoch=0.0; HAE=0.0;
+	VAepoch=0.0; VAE=0.0;
 
     if (DebugTraceF>0) {
 		traceopen(TRACEFILE);
@@ -1411,9 +1411,9 @@ void __fastcall TMainForm::SvrStop(void)
     
 	trace(3,"SvrStop\n");
     /*lyj add*/
-    allepoch=0;
-	HAepoch=0; HAE=0;
-	VAepoch=0; VAE=0;
+//	allepoch=0.0;
+//	HAepoch=0.0; HAE=0.0;
+//	VAepoch=0.0; VAE=0.0;
     
     for (i=0;i<3;i++) {
         str=rtksvr.stream[i].type;
@@ -1617,7 +1617,7 @@ void __fastcall TMainForm::UpdatePos(int update)
 	double dms1[3]={0},dms2[3]={0},bl[3]={0},enu[3]={0},pitch=0.0,yaw=0.0,len;
 	int i,stat=SolStat[PSol];
 	double randoxNumber = Random(100) / 1000.0 + 0.9; //随机数
-    double hpl,vpl;
+	double hpl=0.0,vpl=0.0;
 
 	trace(4,"UpdatePos\n");
 	for (i=0;i<3;i++) RefRovxyz[i]=RovPos[i];
@@ -1641,19 +1641,28 @@ void __fastcall TMainForm::UpdatePos(int update)
     if (norm(rr,3)>0.0&&norm(rb,3)>0.0) {
         for (i=0;i<3;i++) bl[i]=rr[i]-rb[i];
 	}
-    len=norm(bl,3);
-    if (SolType==0) {
-        if (norm(rr,3)>0.0) {
+	len=norm(bl,3);
+
+	if (norm(rr,3)>0.0) {
+		ecef2pos(rr,pos); covenu(pos,qr,Qe);//rr:xyz  pos:blh
+		Qe[0]+=0.005*0.005; /* add 5 mm in N,E, and U */
+		Qe[4]+=0.005*0.005;
+		Qe[8]+=0.005*0.005;
+		hpl=SQRT(Qe[0]+Qe[4])*6.5; /* change to 6.5 from 6.0 */
+		vpl=SQRT(Qe[8])*7.5;      /* change to 7.5 from 6.0 */
+	}
+
+
+	if (SolType==0) {
+		if (norm(rr,3)>0.0) {
 			ecef2pos(rr,pos); covenu(pos,qr,Qe);//rr:xyz  pos:blh
-			hpl=SQRT(Qe[4]+Qe[0])*6;
-			vpl=SQRT(Qe[8])*6;
 			degtodms(pos[0]*R2D,dms1);
             degtodms(pos[1]*R2D,dms2);
 			if (SolOpt.height==1) pos[2]-=geoidh(pos); /* geodetic */
 			for(i=0;i<3;i++) dxyz[i]=rr[i]-RefRovxyz[i];
 			ecef2enu(RefRovblh, dxyz, denu);
-            if (update) allepoch++;
-			if (fabs(denu[0])>hpl||fabs(denu[1])>hpl) {
+			if (update) allepoch++;
+			if (SQRT(denu[0]*denu[0]+denu[1]*denu[1])>hpl) {
 				s[9]="异常";
 				if (update) {
 					HAepoch++;
@@ -1686,16 +1695,12 @@ void __fastcall TMainForm::UpdatePos(int update)
 	else if (SolType==1) {
 		if (norm(rr,3)>0.0) {
 			ecef2pos(rr,pos); covenu(pos,qr,Qe);
-			hpl=SQRT(Qe[4]+Qe[0])*6;
-			vpl=SQRT(Qe[8])*6;
 			if (SolOpt.height==1) pos[2]-=geoidh(pos); /* geodetic */
 			for(i=0;i<3;i++) dxyz[i]=rr[i]-RefRovxyz[i];
 			ecef2enu(RefRovblh, dxyz, denu);
-//			if(norm(denu,3)>100) {
-//				for(i=0;i<3;i++) denu[i]=9.999;
-//			}
+
 			if (update) allepoch++;
-			if (fabs(denu[0])>hpl||fabs(denu[1])>hpl) {
+			if (SQRT(denu[0]*denu[0]+denu[1]*denu[1])>hpl) {
 				s[9]="异常";
 				if (update) {
 					HAepoch++;
@@ -1728,15 +1733,11 @@ void __fastcall TMainForm::UpdatePos(int update)
 	else if (SolType==2) {
 		if (norm(rr,3)>0.0) {
 			ecef2pos(rr,pos); covenu(pos,qr,Qe);
-			hpl=SQRT(Qe[4]+Qe[0])*6;
-			vpl=SQRT(Qe[8])*6;
 			for(i=0;i<3;i++) dxyz[i]=rr[i]-RefRovxyz[i];
 			ecef2enu(RefRovblh, dxyz, denu);
-//            if(norm(denu,3)>100) {
-//				for(i=0;i<3;i++) denu[i]=9.999;
-//			}
-            if (update) allepoch++;
-			if (fabs(denu[0])>hpl||fabs(denu[1])>hpl) {
+
+			if (update) allepoch++;
+			if (SQRT(denu[0]*denu[0]+denu[1]*denu[1])>hpl) {
 				s[9]="异常";
 				if (update) {
 					HAepoch++;
@@ -1768,14 +1769,12 @@ void __fastcall TMainForm::UpdatePos(int update)
     else if (SolType==3) {
         if (len>0.0) {
 			ecef2pos(rb,pos); ecef2enu(pos,bl,enu); covenu(pos,qr,Qe);
-			hpl=SQRT(Qe[4]+Qe[0])*6;
-			vpl=SQRT(Qe[8])*6;
 		}
         if (update) allepoch++;
 		if (norm(rr,3)>0.0) {
 			for(i=0;i<3;i++) dxyz[i]=rr[i]-RefRovxyz[i];
 			ecef2enu(RefRovblh, dxyz, denu);
-			if (fabs(denu[0])>hpl||fabs(denu[1])>hpl) {
+			if (SQRT(denu[0]*denu[0]+denu[1]*denu[1])>hpl) {
 				s[9]="异常";
 				if (update) {
 					HAepoch++;
@@ -1807,19 +1806,14 @@ void __fastcall TMainForm::UpdatePos(int update)
     else {
 		if (len>0.0) {
 			ecef2pos(rb,pos); ecef2enu(pos,bl,enu); covenu(pos,qr,Qe);
-            hpl=SQRT(Qe[4]+Qe[0])*6;
-			vpl=SQRT(Qe[8])*6;
 			pitch=asin(enu[2]/len);
             yaw=atan2(enu[0],enu[1]); if (yaw<0.0) yaw+=2.0*PI;
 		}
 		if (norm(rr,3)>0.0) {
 			for(i=0;i<3;i++) dxyz[i]=rr[i]-RefRovxyz[i];
 			ecef2enu(RefRovblh, dxyz, denu);
-//			if(norm(denu,3)>100) {
-//				for(i=0;i<3;i++) denu[i]=9.999;
-//			}
             if (update) allepoch++;
-			if (fabs(denu[0])>hpl||fabs(denu[1])>hpl) {
+			if (SQRT(denu[0]*denu[0]+denu[1]*denu[1])>hpl) {
 				s[9]="异常";
 				if (update) {
 					HAepoch++;
