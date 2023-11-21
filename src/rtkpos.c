@@ -1440,12 +1440,18 @@ static int valpos(rtk_t *rtk, const double *v, const double *R, const int *vflg,
     double fact=thres*thres;
     int i,stat=1,sat1,sat2,type,freq;
     char *stype;
-    
+    int nobs=0,nout=0;
     trace(3,"valpos  : nv=%d thres=%.1f\n",nv,thres);
     
     /* post-fit residual test */
+    rtk->sol.var=0;
     for (i=0;i<nv;i++) {
-        if (v[i]*v[i]<=fact*R[i+i*nv]) continue;
+        if (v[i]*v[i]<=fact*R[i+i*nv]) {
+            rtk->sol.var+=v[i]*v[i];
+            ++nobs;
+            continue;
+        }
+        ++nout;
         sat1=(vflg[i]>>16)&0xFF;
         sat2=(vflg[i]>> 8)&0xFF;
         type=(vflg[i]>> 4)&0xF;
@@ -1454,6 +1460,7 @@ static int valpos(rtk_t *rtk, const double *v, const double *R, const int *vflg,
         errmsg(rtk,"large residual (sat=%2d-%2d %s%d v=%6.3f sig=%.3f)\n",
               sat1,sat2,stype,freq+1,v[i],SQRT(R[i+i*nv]));
     }
+    rtk->sol.var=(nobs>4)?sqrt(rtk->sol.var/nobs):0;
     return stat;
 }
 /* relative positioning ------------------------------------------------------*/
