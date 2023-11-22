@@ -2364,7 +2364,7 @@ void __fastcall TMainForm::OpenMoniPort(int port)
     
     if (port<=0) return;
     
-    trace(3,"OpenMoniPort: port=%d\n",port);
+	trace(3,"OpenMoniPort: port=%d\n",port);
     
     for (i=0;i<=MAXPORTOFF;i++) {
         
@@ -2372,7 +2372,7 @@ void __fastcall TMainForm::OpenMoniPort(int port)
         
         if (stropen(&monistr,STR_TCPSVR,STR_MODE_RW,path)) {
             strsettimeout(&monistr,TimeoutTime,ReconTime);
-            if (i>0) Caption=s.sprintf("%s ver.%s %s (%d)",PRGNAME,VER_RTKLIB,PATCH_LEVEL,i+1);
+			if (i>0) Caption=s.sprintf("%s ver.%s (%d)",PRGNAME,VER_APP,i+1);
             OpenPort=port+i;
             return;
         }
