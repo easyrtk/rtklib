@@ -120,11 +120,12 @@ __fastcall TMainForm::TMainForm(TComponent* Owner)
     BLMode1=BLMode2=BLMode3=BLMode4=0;
     PSol=PSolS=PSolE=Nsat[0]=Nsat[1]=0;
     NMapPnt=0;
-    OpenPort=0;
+	OpenPort=0;
     Time=NULL;
     SolStat=Nvsat=NULL;
     SolCurrentStat=0;
-    SolRov=SolRef=Qr=VelRov=Age=Ratio=NULL;
+	SolRov=SolRef=Qr=VelRov=Age=Ratio=PostVar=NULL;
+	HPL=VPL=HA=VA=AllEpoch=HaEpoch=VaEpoch=NULL;
     for (int i=0;i<2;i++) for (int j=0;j<MAXSAT;j++) {
         Sat[i][j]=Vsat[i][j]=0;
         Az[i][j]=El[i][j]=0.0;
@@ -1225,9 +1226,6 @@ void __fastcall TMainForm::SvrStart(void)
 	PrcOpt.dRefRovenu[0]=RovAntDel[0];
 	PrcOpt.dRefRovenu[1]=RovAntDel[1];
 	PrcOpt.dRefRovenu[2]=RovAntDel[2];
-	allepoch=0.0;
-	HAepoch=0.0; HAE=0.0;
-	VAepoch=0.0; VAE=0.0;
 
     if (DebugTraceF>0) {
 		traceopen(TRACEFILE);
@@ -1376,7 +1374,7 @@ void __fastcall TMainForm::SvrStart(void)
     rtksvr.bl_reset=MaxBL;
     
     // start rtk server
-    if (!rtksvrstart(&rtksvr,SvrCycle,SvrBuffSize,strs,paths,Format,NavSelect,
+	if (!rtksvrstart(&rtksvr,SvrCycle,SvrBuffSize,strs,paths,Format,NavSelect,
                      cmds,cmds_periodic,rcvopts,NmeaCycle,NmeaReq,nmeapos,
                      &PrcOpt,solopt,&monistr,errmsg)) {
         trace(2,"rtksvrstart error %s\n",errmsg);
@@ -1385,9 +1383,10 @@ void __fastcall TMainForm::SvrStart(void)
     }
     PSol=PSolS=PSolE=0;
     SolStat[0]=Nvsat[0]=0;
-    for (i=0;i<3;i++) SolRov[i]=SolRef[i]=VelRov[i]=0.0;
+    for (i=0;i<3;i++) SolRov[i]=SolRef[i]=VelRov[i]=dENU[i]=0.0;
     for (i=0;i<9;i++) Qr[i]=0.0;
-    Age[0]=Ratio[0]=0.0;
+	Age[0]=Ratio[0]=PostVar[0]=0.0;
+	HPL[0]=VPL[0]=HA[0]=VA[0]=AllEpoch[0]=HaEpoch[0]=VaEpoch[0]=0;
     Nsat[0]=Nsat[1]=0;
     UpdatePos();
     UpdatePlot();
@@ -1410,10 +1409,6 @@ void __fastcall TMainForm::SvrStop(void)
     int i,n,m,str;
     
 	trace(3,"SvrStop\n");
-    /*lyj add*/
-//	allepoch=0.0;
-//	HAepoch=0.0; HAE=0.0;
-//	VAepoch=0.0; VAE=0.0;
     
     for (i=0;i<3;i++) {
         str=rtksvr.stream[i].type;
@@ -1466,13 +1461,14 @@ void __fastcall TMainForm::TimerTimer(TObject *Sender)
     rtksvrlock(&rtksvr);
     
     for (i=0;i<rtksvr.nsol;i++) {
-        sol=rtksvr.solbuf+i;
+		sol=rtksvr.solbuf+i;
         UpdateLog(sol->stat,sol->time,sol->rr,sol->qr,rtksvr.rtk.rb,sol->ns,
-                  sol->age,sol->ratio);
+				  sol->age,sol->ratio,sol->var,sol->HPL,sol->VPL,sol->HA,sol->VA,
+				  rtksvr.allepoch,rtksvr.HAepoch,rtksvr.VAepoch,sol->enu);
         update=1;
     }
     rtksvr.nsol=0;
-    SolCurrentStat=rtksvr.state?rtksvr.rtk.sol.stat:0;
+	SolCurrentStat=rtksvr.state?rtksvr.rtk.sol.stat:0;
     
     rtksvrunlock(&rtksvr);
     
@@ -1526,7 +1522,8 @@ void __fastcall TMainForm::UpdateSolType(void)
 }
 // update log ---------------------------------------------------------------
 void __fastcall TMainForm::UpdateLog(int stat, gtime_t time, double *rr,
-    float *qr, double *rb, int ns, double age, double ratio)
+	float *qr, double *rb, int ns, double age, double ratio,double var,
+	double hpl, double vpl, int ha, int va, int allepoch, int haepoch, int vaepoch,double *denu)
 {
     int i,ena;
     
@@ -1534,19 +1531,21 @@ void __fastcall TMainForm::UpdateLog(int stat, gtime_t time, double *rr,
     
     trace(4,"UpdateLog\n");
     
-    SolStat[PSolE]=stat; Time[PSolE]=time; Nvsat[PSolE]=ns; Age[PSolE]=age;
-    Ratio[PSolE]=ratio;
+	SolStat[PSolE]=stat; Time[PSolE]=time; Nvsat[PSolE]=ns; Age[PSolE]=age;
+	Ratio[PSolE]=ratio; PostVar[PSolE]=var; HPL[PSolE]=hpl; VPL[PSolE]=vpl;
+	HA[PSolE]=ha; VA[PSolE]=va; AllEpoch[PSolE]=allepoch; HaEpoch[PSolE]=haepoch; VaEpoch[PSolE]=vaepoch;
     for (i=0;i<3;i++) {
-        SolRov[i+PSolE*3]=rr[i];
+		SolRov[i+PSolE*3]=rr[i];
         SolRef[i+PSolE*3]=rb[i];
-        VelRov[i+PSolE*3]=rr[i+3];
-    }
-    Qr[  PSolE*9]=qr[0];
-    Qr[4+PSolE*9]=qr[1];
-    Qr[8+PSolE*9]=qr[2];
-    Qr[1+PSolE*9]=Qr[3+PSolE*9]=qr[3];
-    Qr[5+PSolE*9]=Qr[7+PSolE*9]=qr[4];
-    Qr[2+PSolE*9]=Qr[6+PSolE*9]=qr[5];
+		VelRov[i+PSolE*3]=rr[i+3];
+		dENU[i+PSolE*3]=denu[i];
+	}
+	Qr[  PSolE*9]=fabs(qr[0]);
+	Qr[4+PSolE*9]=fabs(qr[1]);
+	Qr[8+PSolE*9]=fabs(qr[2]);
+	Qr[1+PSolE*9]=Qr[3+PSolE*9]=0;/*qr[3]*/
+	Qr[5+PSolE*9]=Qr[7+PSolE*9]=0;/*qr[4]*/
+	Qr[2+PSolE*9]=Qr[6+PSolE*9]=0;/*qr[5]*/
     
     PSol=PSolE;
     if (++PSolE>=SolBuffSize) PSolE=0;
@@ -1613,20 +1612,12 @@ void __fastcall TMainForm::UpdatePos(int update)
 	TColor color[]={clSilver,clGreen,CLORANGE,clFuchsia,clBlue,clRed,clTeal};
     gtime_t time;
 	double *rr=SolRov+PSol*3,*rb=SolRef+PSol*3,*qr=Qr+PSol*9,pos[3]={0},Qe[9]={0};
-	double RefRovxyz[3],RefRovblh[3],dxyz[3],denu[3]={0},dRefRovxyz[3];
+	double *denu=dENU+PSol*3;
 	double dms1[3]={0},dms2[3]={0},bl[3]={0},enu[3]={0},pitch=0.0,yaw=0.0,len;
 	int i,stat=SolStat[PSol];
-	double randoxNumber = Random(100) / 1000.0 + 0.9; //随机数
 	double hpl=0.0,vpl=0.0;
 
 	trace(4,"UpdatePos\n");
-	for (i=0;i<3;i++) RefRovxyz[i]=RovPos[i];
-	ecef2pos(RefRovxyz, RefRovblh);//输入的流动站参考坐标  xyz -> blh
-	if ((RovAntDel[0]!=0)||(RovAntDel[1]!=0)||(RovAntDel[2]!=0)) {
-		enu2ecef(RefRovblh, RovAntDel, dRefRovxyz);
-		for (i=0;i<3;i++) RefRovxyz[i]+=dRefRovxyz[i];
-		ecef2pos(RefRovxyz, RefRovblh);
-	}
 
     if (rtksvr.rtk.opt.mode==PMODE_STATIC||rtksvr.rtk.opt.mode==PMODE_PPP_STATIC) {
 		ext=" (S)";
@@ -1643,41 +1634,16 @@ void __fastcall TMainForm::UpdatePos(int update)
 	}
 	len=norm(bl,3);
 
-	if (norm(rr,3)>0.0) {
-		ecef2pos(rr,pos); covenu(pos,qr,Qe);//rr:xyz  pos:blh
-		Qe[0]+=0.005*0.005; /* add 5 mm in N,E, and U */
-		Qe[4]+=0.005*0.005;
-		Qe[8]+=0.005*0.005;
-		hpl=SQRT(Qe[0]+Qe[4])*6.5; /* change to 6.5 from 6.0 */
-		vpl=SQRT(Qe[8])*7.5;      /* change to 7.5 from 6.0 */
-	}
-
-
 	if (SolType==0) {
 		if (norm(rr,3)>0.0) {
 			ecef2pos(rr,pos); covenu(pos,qr,Qe);//rr:xyz  pos:blh
 			degtodms(pos[0]*R2D,dms1);
             degtodms(pos[1]*R2D,dms2);
 			if (SolOpt.height==1) pos[2]-=geoidh(pos); /* geodetic */
-			for(i=0;i<3;i++) dxyz[i]=rr[i]-RefRovxyz[i];
-			ecef2enu(RefRovblh, dxyz, denu);
-			if (update) allepoch++;
-			if (SQRT(denu[0]*denu[0]+denu[1]*denu[1])>hpl) {
-				s[9]="异常";
-				if (update) {
-					HAepoch++;
-					if(allepoch) HAE=HAepoch/allepoch*100;
-				}
-			}
-			else s[9]="正常";
 
-			if (fabs(denu[2])>vpl) {
-				s[10]="异常";
-				if (update) {
-					VAepoch++;
-					if(allepoch) VAE=VAepoch/allepoch*100;
-				}
-			}
+			if (HA[PSol]) s[9]="异常";
+			else s[9]="正常";
+			if (VA[PSol]) s[10]="异常";
 			else s[10]="正常";
 		}
 		s[0]=pos[0]<0?"S:":"纬    度:"; s[1]=pos[1]<0?"W:":"经    度:";
@@ -1687,8 +1653,12 @@ void __fastcall TMainForm::UpdatePos(int update)
 		s[4].sprintf(L"%.0f\u00B0 %02.0f' %07.4f\"",fabs(dms2[0]),dms2[1],dms2[2]);
 		s[5].sprintf(L"%.3f m",pos[2]);
 		s[6].sprintf(L"偏    差:  E:%6.3f   N:%6.3f   U:%6.3f [m]",denu[0],denu[1],denu[2]);
-		s[7].sprintf(L"水平保护水平 HPL: %4.3f",hpl);
-		s[8].sprintf(L"垂直保护水平 VPL: %4.3f",vpl);
+		s[7].sprintf(L"水平保护水平 HPL: %4.3f",HPL[PSol]);
+		s[8].sprintf(L"垂直保护水平 VPL: %4.3f",VPL[PSol]);
+		if(AllEpoch[PSol]) {
+			HAE=HaEpoch[PSol]*1.0/AllEpoch[PSol]*100;
+			VAE=VaEpoch[PSol]*1.0/AllEpoch[PSol]*100;
+		}
 		s[11].sprintf(L"水平告警历元统计: %3.1f %",HAE);
 		s[12].sprintf(L"垂直告警历元统计: %3.1f %",VAE);
 	}
@@ -1696,26 +1666,10 @@ void __fastcall TMainForm::UpdatePos(int update)
 		if (norm(rr,3)>0.0) {
 			ecef2pos(rr,pos); covenu(pos,qr,Qe);
 			if (SolOpt.height==1) pos[2]-=geoidh(pos); /* geodetic */
-			for(i=0;i<3;i++) dxyz[i]=rr[i]-RefRovxyz[i];
-			ecef2enu(RefRovblh, dxyz, denu);
 
-			if (update) allepoch++;
-			if (SQRT(denu[0]*denu[0]+denu[1]*denu[1])>hpl) {
-				s[9]="异常";
-				if (update) {
-					HAepoch++;
-					if(allepoch) HAE=HAepoch/allepoch*100;
-				}
-			}
+			if (HA[PSol]) s[9]="异常";
 			else s[9]="正常";
-
-			if (fabs(denu[2])>vpl) {
-				s[10]="异常";
-				if (update) {
-					VAepoch++;
-					if(allepoch) VAE=VAepoch/allepoch*100;
-				}
-			}
+			if (VA[PSol]) s[10]="异常";
 			else s[10]="正常";
         }
 		s[0]=pos[0]<0?"S:":"纬    度:"; s[1]=pos[1]<0?"W:":"经    度:";
@@ -1725,34 +1679,22 @@ void __fastcall TMainForm::UpdatePos(int update)
 		s[5].sprintf(L"%.3f m",pos[2]);
 //		s[6].sprintf(L"标准差  E:%6.3f   N:%6.3f   U:%6.3f m",SQRT(Qe[0]),SQRT(Qe[4]),SQRT(Qe[8]));
 		s[6].sprintf(L"偏    差:  E:%6.3f   N:%6.3f   U:%6.3f [m]",denu[0],denu[1],denu[2]);
-		s[7].sprintf(L"水平保护水平 HPL: %4.3f",hpl);
-		s[8].sprintf(L"垂直保护水平 VPL: %4.3f",vpl);
+		s[7].sprintf(L"水平保护水平 HPL: %4.3f",HPL[PSol]);
+		s[8].sprintf(L"垂直保护水平 VPL: %4.3f",VPL[PSol]);
+		if(AllEpoch[PSol]) {
+			HAE=HaEpoch[PSol]*1.0/AllEpoch[PSol]*100;
+			VAE=VaEpoch[PSol]*1.0/AllEpoch[PSol]*100;
+		}
 		s[11].sprintf(L"水平告警历元统计: %3.1f %",HAE);
 		s[12].sprintf(L"垂直告警历元统计: %3.1f %",VAE);
 	}
 	else if (SolType==2) {
 		if (norm(rr,3)>0.0) {
 			ecef2pos(rr,pos); covenu(pos,qr,Qe);
-			for(i=0;i<3;i++) dxyz[i]=rr[i]-RefRovxyz[i];
-			ecef2enu(RefRovblh, dxyz, denu);
 
-			if (update) allepoch++;
-			if (SQRT(denu[0]*denu[0]+denu[1]*denu[1])>hpl) {
-				s[9]="异常";
-				if (update) {
-					HAepoch++;
-					if(allepoch) HAE=HAepoch/allepoch*100;
-				}
-			}
+			if (HA[PSol]) s[9]="异常";
 			else s[9]="正常";
-
-			if (fabs(denu[2])>vpl) {
-				s[10]="异常";
-				if (update) {
-					VAepoch++;
-					if(allepoch) VAE=VAepoch/allepoch*100;
-				}
-			}
+			if (VA[PSol]) s[10]="异常";
 			else s[10]="正常";
         }
 		s[0]="    X:"; s[1]="    Y:"; s[2]="    Z:";
@@ -1761,8 +1703,12 @@ void __fastcall TMainForm::UpdatePos(int update)
 		s[5].sprintf(L"%.3f m",rr[2]);
 //		s[6].sprintf(L"标准差  X:%6.3f   Y:%6.3f   Z:%6.3f m",SQRT(qr[0]),SQRT(qr[4]),SQRT(qr[8]));
 		s[6].sprintf(L"偏    差:  E:%6.3f   N:%6.3f   U:%6.3f [m]",denu[0],denu[1],denu[2]);
-		s[7].sprintf(L"水平保护水平 HPL: %4.3f",hpl);
-		s[8].sprintf(L"垂直保护水平 VPL: %4.3f",vpl);
+		s[7].sprintf(L"水平保护水平 HPL: %4.3f",HPL[PSol]);
+		s[8].sprintf(L"垂直保护水平 VPL: %4.3f",VPL[PSol]);
+		if(AllEpoch[PSol]) {
+			HAE=HaEpoch[PSol]*1.0/AllEpoch[PSol]*100;
+			VAE=VaEpoch[PSol]*1.0/AllEpoch[PSol]*100;
+		}
 		s[11].sprintf(L"水平告警历元统计: %3.1f %",HAE);
 		s[12].sprintf(L"垂直告警历元统计: %3.1f %",VAE);
 	}
@@ -1770,26 +1716,10 @@ void __fastcall TMainForm::UpdatePos(int update)
         if (len>0.0) {
 			ecef2pos(rb,pos); ecef2enu(pos,bl,enu); covenu(pos,qr,Qe);
 		}
-        if (update) allepoch++;
 		if (norm(rr,3)>0.0) {
-			for(i=0;i<3;i++) dxyz[i]=rr[i]-RefRovxyz[i];
-			ecef2enu(RefRovblh, dxyz, denu);
-			if (SQRT(denu[0]*denu[0]+denu[1]*denu[1])>hpl) {
-				s[9]="异常";
-				if (update) {
-					HAepoch++;
-					if(allepoch) HAE=HAepoch/allepoch*100;
-				}
-			}
+			if (HA[PSol]) s[9]="异常";
 			else s[9]="正常";
-
-			if (fabs(denu[2])>vpl) {
-				s[10]="异常";
-				if (update) {
-					VAepoch++;
-					if(allepoch) VAE=VAepoch/allepoch*100;
-				}
-			}
+			if (VA[PSol]) s[10]="异常";
 			else s[10]="正常";
         }
 		s[0]="    东:"; s[1]="    北:"; s[2]="    天:";
@@ -1798,8 +1728,12 @@ void __fastcall TMainForm::UpdatePos(int update)
 		s[5].sprintf(L"%.3f m",enu[2]);
 //		s[6].sprintf(L"标准差  E:%6.3f   N:%6.3f   U:%6.3f m",SQRT(Qe[0]),SQRT(Qe[4]),SQRT(Qe[8]));
 		s[6].sprintf(L"偏    差:  E:%6.3f   N:%6.3f   U:%6.3f [m]",denu[0],denu[1],denu[2]);
-		s[7].sprintf(L"水平保护水平 HPL: %4.3f",hpl);
-		s[8].sprintf(L"垂直保护水平 VPL: %4.3f",vpl);
+		s[7].sprintf(L"水平保护水平 HPL: %4.3f",HPL[PSol]);
+		s[8].sprintf(L"垂直保护水平 VPL: %4.3f",VPL[PSol]);
+		if(AllEpoch[PSol]) {
+			HAE=HaEpoch[PSol]*1.0/AllEpoch[PSol]*100;
+			VAE=VaEpoch[PSol]*1.0/AllEpoch[PSol]*100;
+		}
 		s[11].sprintf(L"水平告警历元统计: %3.1f %",HAE);
 		s[12].sprintf(L"垂直告警历元统计: %3.1f %",VAE);
 	}
@@ -1810,25 +1744,9 @@ void __fastcall TMainForm::UpdatePos(int update)
             yaw=atan2(enu[0],enu[1]); if (yaw<0.0) yaw+=2.0*PI;
 		}
 		if (norm(rr,3)>0.0) {
-			for(i=0;i<3;i++) dxyz[i]=rr[i]-RefRovxyz[i];
-			ecef2enu(RefRovblh, dxyz, denu);
-            if (update) allepoch++;
-			if (SQRT(denu[0]*denu[0]+denu[1]*denu[1])>hpl) {
-				s[9]="异常";
-				if (update) {
-					HAepoch++;
-					if(allepoch) HAE=HAepoch/allepoch*100;
-				}
-			}
+            if (HA[PSol]) s[9]="异常";
 			else s[9]="正常";
-
-			if (fabs(denu[2])>vpl) {
-				s[10]="异常";
-				if (update) {
-					VAepoch++;
-					if(allepoch) VAE=VAepoch/allepoch*100;
-				}
-			}
+			if (VA[PSol]) s[10]="异常";
 			else s[10]="正常";
         }
 		s[0]="俯    仰:"; s[1]="航    向:"; s[2]="长    度:";
@@ -1837,15 +1755,19 @@ void __fastcall TMainForm::UpdatePos(int update)
 		s[5].sprintf(L"%.3f m",len);
 //		s[6].sprintf(L"标准差  E:%6.3f   N:%6.3f   U:%6.3f m",SQRT(Qe[0]),SQRT(Qe[4]),SQRT(Qe[8]));
 		s[6].sprintf(L"偏    差:  E:%6.3f   N:%6.3f   U:%6.3f [m]",denu[0],denu[1],denu[2]);
-		s[7].sprintf(L"水平保护水平 HPL: %4.3f",hpl);
-		s[8].sprintf(L"垂直保护水平 VPL: %4.3f",vpl);
+		s[7].sprintf(L"水平保护水平 HPL: %4.3f",HPL[PSol]);
+		s[8].sprintf(L"垂直保护水平 VPL: %4.3f",VPL[PSol]);
+		if(AllEpoch[PSol]) {
+			HAE=HaEpoch[PSol]*1.0/AllEpoch[PSol]*100;
+			VAE=VaEpoch[PSol]*1.0/AllEpoch[PSol]*100;
+		}
 		s[11].sprintf(L"水平告警历元统计: %3.1f %",HAE);
 		s[12].sprintf(L"垂直告警历元统计: %3.1f %",VAE);
 	}
 	s[13].sprintf(L"龄    期     age: %4.1f [s]",Age[PSol]);
 	s[14].sprintf(L"比    率     ratio: %4.1f",Ratio[PSol]);
 	s[15].sprintf(L"卫星数     nsat: %2d",Nvsat[PSol]);
-	s[16].sprintf(L"验后方差 var: %4.3f",randoxNumber);
+	s[16].sprintf(L"验后方差 var: %4.3f",PostVar[PSol]);
 	if (Ratio[PSol]>0.0) s[17].sprintf(L" R: %4.1f",Ratio[PSol]);
 	for (i=0;i<17;i++)  label[i]->Caption=s[i];
 	for (i=3;i<6;i++) {
@@ -2466,29 +2388,41 @@ void __fastcall TMainForm::InitSolBuff(void)
     
     trace(3,"InitSolBuff\n");
     
-    delete [] Time;   delete [] SolStat; delete [] Nvsat;  delete [] SolRov;
-    delete [] SolRef; delete [] Qr;      delete [] VelRov; delete [] Age;
-    delete [] Ratio;
-    
-    if (SolBuffSize<=0) SolBuffSize=1;
-    Time   =new gtime_t[SolBuffSize];
+	delete [] Time;   delete [] SolStat; delete [] Nvsat;  delete [] SolRov;
+	delete [] SolRef; delete [] Qr;      delete [] VelRov; delete [] Age;
+	delete [] Ratio;  delete [] PostVar; delete [] HPL;    delete [] VPL;
+	delete [] HA;     delete [] VA;      delete [] AllEpoch; delete [] HaEpoch; delete [] VaEpoch;
+	delete [] dENU;
+
+	if (SolBuffSize<=0) SolBuffSize=1;
+	Time   =new gtime_t[SolBuffSize];
     SolStat=new int[SolBuffSize];
     Nvsat  =new int[SolBuffSize];
-    SolRov =new double[SolBuffSize*3];
+	SolRov =new double[SolBuffSize*3];
     SolRef =new double[SolBuffSize*3];
     VelRov =new double[SolBuffSize*3];
-    Qr     =new double[SolBuffSize*9];
+	Qr     =new double[SolBuffSize*9];
+	dENU   =new double[SolBuffSize*3];
     Age    =new double[SolBuffSize];
-    Ratio  =new double[SolBuffSize];
+	Ratio  =new double[SolBuffSize];
+	PostVar=new double[SolBuffSize];
+	HPL=new double[SolBuffSize];
+	VPL=new double[SolBuffSize];
+	HA=new double[SolBuffSize];
+	VA=new double[SolBuffSize];
+	AllEpoch=new double[SolBuffSize];
+	HaEpoch=new double[SolBuffSize];
+	VaEpoch=new double[SolBuffSize];
     PSol=PSolS=PSolE=0;
     for (i=0;i<SolBuffSize;i++) {
         Time[i]=epoch2time(ep);
         SolStat[i]=Nvsat[i]=0;
-        for (j=0;j<3;j++) SolRov[j+i*3]=SolRef[j+i*3]=VelRov[j+i*3]=0.0;
+		for (j=0;j<3;j++) SolRov[j+i*3]=SolRef[j+i*3]=VelRov[j+i*3]=dENU[j+i*3]=0.0;
         for (j=0;j<9;j++) Qr[j+i*9]=0.0;
-        Age[i]=Ratio[i]=0.0;
-    }
-    ScbSol->Max=0; ScbSol->Position=0;
+		Age[i]=Ratio[i]=PostVar[i]=HPL[i]=VPL[i]=0.0;
+		HA[i]=VA[i]=AllEpoch[i]=HaEpoch[i]=VaEpoch[i]=0.0;
+	}
+	ScbSol->Max=0; ScbSol->Position=0;
 }
 // save log file ------------------------------------------------------------
 void __fastcall TMainForm::SaveLog(void)
@@ -2529,11 +2463,17 @@ void __fastcall TMainForm::SaveLog(void)
     outsolhead(fp,&opt);
     for (i=PSolS;i!=PSolE;) {
         sol.time=Time[i];
-        matcpy(sol.rr,SolRov+i*3,3,1);
+		matcpy(sol.rr,SolRov+i*3,3,1);
+        matcpy(sol.enu,dENU+i*3,3,1);
         sol.stat=SolStat[i];
         sol.ns=Nvsat[i];
-        sol.ratio=Ratio[i];
-        sol.age=Age[i];
+		sol.ratio=Ratio[i];
+		sol.age=Age[i];
+		sol.var=PostVar[i];
+		sol.HPL=HPL[i];
+		sol.VPL=VPL[i];
+		sol.HA=HA[i];
+		sol.VA=VA[i];
         outsol(fp,&sol,SolRef+i*3,&opt);
         if (++i>=SolBuffSize) i=0;
     }

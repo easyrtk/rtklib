@@ -209,7 +209,9 @@ __published:
 	void __fastcall BtnFreqType4Click(TObject *Sender);
 private:
 	void __fastcall UpdateLog    (int stat, gtime_t time, double *rr, float *qr,
-								  double *rb, int ns, double age, double ratio);
+								  double *rb, int ns, double age, double ratio, double var,
+								  double HPL, double VPL, int HA, int VA,
+								  int allepoch, int HAepoch, int VAepoch, double *denu);
 	void __fastcall SvrStart     (void);
 	void __fastcall SvrStop      (void);
 	void __fastcall UpdatePanel  (void);
@@ -263,14 +265,15 @@ public:
 	int TrkScale1,TrkScale2,TrkScale3,TrkScale4;
 	int BLMode1,BLMode2,BLMode3,BLMode4;
 	int MoniPort,OpenPort,AutoRun;
-    double allepoch,HAepoch,VAepoch,HAE,VAE;
+    double HAE,VAE;
 	
 	int PSol,PSolS,PSolE,Nsat[2],SolCurrentStat;
 	int Sat[2][MAXSAT],Snr[2][MAXSAT][NFREQ],Vsat[2][MAXSAT];
 	double Az[2][MAXSAT],El[2][MAXSAT];
 	gtime_t *Time;
 	int *SolStat,*Nvsat;
-	double *SolRov,*SolRef,*Qr,*VelRov,*Age,*Ratio;
+	double *SolRov,*SolRef,*Qr,*VelRov,*Age,*Ratio,*PostVar;
+	double *HPL, *VPL, *HA, *VA, *AllEpoch, *HaEpoch, *VaEpoch, *dENU;
 	double TrkOri[3],MaxBL;
 	AnsiString Paths[MAXSTRRTK][4],Cmds[3][3],CmdsTcp[3][3];
 	AnsiString InTimeStart,InTimeSpeed,ExSats;

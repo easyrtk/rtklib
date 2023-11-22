@@ -575,7 +575,12 @@ static void *rtksvrthread(void *arg)
     int i,j,n,fobs[3]={0},cycle,cputime;
     
     tracet(3,"rtksvrthread:\n");
-    
+
+    /*lyj add*/
+	svr->allepoch=0;
+	svr->HAepoch=0;
+	svr->VAepoch=0;
+
     svr->state=1; obs.data=data;
     svr->tick=tickget();
     ticknmea=tick1hz=svr->tick-1000;
@@ -623,7 +628,7 @@ static void *rtksvrthread(void *arg)
             }
             for (i=0;i<3;i++) svr->rtk.opt.rb[i]=svr->rb_ave[i];
         }
-        for (i=0;i<fobs[0];i++) { /* for each rover observation data */
+		for (i=0;i<fobs[0];i++) { /* for each rover observation data */
             obs.n=0;
             for (j=0;j<svr->obs[0][i].n&&obs.n<MAXOBS*2;j++) {
                 obs.data[obs.n++]=svr->obs[0][i].data[j];
@@ -644,8 +649,12 @@ static void *rtksvrthread(void *arg)
                 
                 /* adjust current time */
                 tt=(int)(tickget()-tick)/1000.0+DTTOL;
-                timeset(gpst2utc(timeadd(svr->rtk.sol.time,tt)));
-                
+				timeset(gpst2utc(timeadd(svr->rtk.sol.time,tt)));
+
+				svr->allepoch++;
+				if(svr->rtk.sol.HA)  svr->HAepoch++;
+				if(svr->rtk.sol.VA)  svr->VAepoch++;
+
                 /* write solution */
                 writesol(svr,i);
             }
@@ -859,10 +868,6 @@ extern int rtksvrstart(rtksvr_t *svr, int cycle, int buffsize, int *strs,
     rtkfree(&svr->rtk);
 	rtkinit(&svr->rtk,prcopt);
 
-	/*TEST*/
-//	svr->rtcm[0].ft=fopen("D:\\GeoPnt\\rtkNaviCode\\rtklib_cmcc\\rtklib\\app\\winapp\\rtknavi\\Out\\Type.txt","a");
-//	svr->rtcm[1].ft=fopen("D:\\GeoPnt\\rtkNaviCode\\rtklib_cmcc\\rtklib\\app\\winapp\\rtknavi\\Out\\Type.txt","a");
-
     if (prcopt->initrst) { /* init averaging pos by restart */
         svr->nave=0;
         for (i=0;i<3;i++) svr->rb_ave[i]=0.0;
@@ -956,8 +961,6 @@ extern int rtksvrstart(rtksvr_t *svr, int cycle, int buffsize, int *strs,
         sprintf(errmsg,"thread create error\n");
         return 0;
 	}
-//	fclose(svr->rtcm[0].ft);
-//    fclose(svr->rtcm[1].ft);
     return 1;
 }
 /* stop rtk server -------------------------------------------------------------

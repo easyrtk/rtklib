@@ -1463,6 +1463,15 @@ static int valpos(rtk_t *rtk, const double *v, const double *R, const int *vflg,
     rtk->sol.var=(nobs>4)?sqrt(rtk->sol.var/nobs):0;
     return stat;
 }
+static void soltocov(const sol_t *sol, double *P)
+{
+    P[0]     =fabs(sol->qr[0]); /* xx or ee */
+    P[4]     =fabs(sol->qr[1]); /* yy or nn */
+    P[8]     =fabs(sol->qr[2]); /* zz or uu */
+    P[1]=P[3]=0;/*sol->qr[3];*/ /* xy or en */
+    P[5]=P[7]=0;/*sol->qr[4];*/ /* yz or nu */
+    P[2]=P[6]=0;/*sol->qr[5];*/ /* zx or ue */
+}
 /* relative positioning ------------------------------------------------------*/
 static int relpos(rtk_t *rtk, const obsd_t *obs, int nu, int nr,
                   const nav_t *nav)
@@ -1473,9 +1482,15 @@ static int relpos(rtk_t *rtk, const obsd_t *obs, int nu, int nr,
     int i,j,f,n=nu+nr,ns,ny,nv,sat[MAXSAT],iu[MAXSAT],ir[MAXSAT],niter;
     int info,vflg[MAXOBS*NFREQ*2+1],svh[MAXOBS*2];
     int stat=rtk->opt.mode<=PMODE_DGPS?SOLQ_DGPS:SOLQ_FLOAT;
-    int nf=opt->ionoopt==IONOOPT_IFLC?1:opt->nf;
+	int nf=opt->ionoopt==IONOOPT_IFLC?1:opt->nf;
+	double pos[3]={0},P[9],Q[9];
+	double RefRovxyz[3],RefRovblh[3],dxyz[3],denu[3]={0},dRefRovxyz[3];
     
-    trace(3,"relpos  : nx=%d nu=%d nr=%d\n",rtk->nx,nu,nr);
+	trace(3,"relpos  : nx=%d nu=%d nr=%d\n",rtk->nx,nu,nr);
+
+	/*lyj add*/
+	rtk->sol.HA=0;
+	rtk->sol.VA=0;
     
     dt=timediff(time,obs[nu].time);
     
@@ -1598,7 +1613,7 @@ static int relpos(rtk_t *rtk, const obsd_t *obs, int nu, int nr,
     /* save solution status */
     if (stat==SOLQ_FIX) {
         for (i=0;i<3;i++) {
-            rtk->sol.rr[i]=rtk->xa[i];
+			rtk->sol.rr[i]=rtk->xa[i];
             rtk->sol.qr[i]=(float)rtk->Pa[i+i*rtk->na];
         }
         rtk->sol.qr[3]=(float)rtk->Pa[1];
@@ -1651,10 +1666,39 @@ static int relpos(rtk_t *rtk, const obsd_t *obs, int nu, int nr,
     }
     free(rs); free(dts); free(var); free(y); free(e); free(azel); free(freq);
     free(xp); free(Pp);  free(xa);  free(v); free(H); free(R); free(bias);
-    
-    if (stat!=SOLQ_NONE) rtk->sol.stat=stat;
-    
-    return stat!=SOLQ_NONE;
+
+
+	if (stat!=SOLQ_NONE) {
+		/*compute PL*/
+		ecef2pos(rtk->sol.rr,pos); soltocov(&rtk->sol,P);  covenu(pos,P,Q);
+        Q[0]+=0.005*0.005; /* add 5 mm in N,E, and U */
+		Q[4]+=0.005*0.005;
+		Q[8]+=0.005*0.005;
+		rtk->sol.HPL=SQRT(Q[0]+Q[4])*6.5; /* change to 6.5 from 6.0 */
+		rtk->sol.VPL=SQRT(Q[8])*7.5;      /* change to 7.5 from 6.0 */
+
+		/*compute enu*/
+		for (i=0;i<3;i++) RefRovxyz[i]=rtk->sol.RefRovxyz[i];
+		ecef2pos(RefRovxyz, RefRovblh);/*输入的流动站参考坐标  xyz -> blh*/
+		if ((rtk->sol.dRefRovenu[0]!=0)||(rtk->sol.dRefRovenu[1]!=0)||(rtk->sol.dRefRovenu[2]!=0)) {
+			enu2ecef(RefRovblh, rtk->sol.dRefRovenu, dRefRovxyz);
+			for (i=0;i<3;i++) RefRovxyz[i]+=dRefRovxyz[i];
+			ecef2pos(RefRovxyz, RefRovblh);  /*输入的流动站参考坐标  xyz -> blh*/
+		}
+		for(i=0;i<3;i++) dxyz[i]=rtk->sol.rr[i]-RefRovxyz[i];
+		ecef2enu(RefRovblh, dxyz, denu); /*计算得到denu*/
+		for (i=0;i<3;i++) rtk->sol.enu[i]=denu[i];
+
+		/*compute ha va*/
+		if (SQRT(denu[0]*denu[0]+denu[1]*denu[1])>rtk->sol.HPL) rtk->sol.HA=1;
+		else rtk->sol.HA=0;
+		if (fabs(denu[2])>rtk->sol.VPL) rtk->sol.VA=1;
+		else rtk->sol.VA=0;
+
+		rtk->sol.stat=stat;
+	}
+
+	return stat!=SOLQ_NONE;
 }
 /* initialize RTK control ------------------------------------------------------
 * initialize RTK control struct

@@ -863,8 +863,11 @@ typedef struct {        /* solution type */
     /*lyj add*/
 	double RefRovxyz[3];  /*流动站参考坐标 ecef*/
 	double dRefRovenu[3]; /*流动站参考坐标 enu变化量*/
+    double enu[3];
 	double HPL;           /*水平保护水平*/
 	double VPL;           /*垂直保护水平*/
+	int HA;
+    int VA;
 	double var;           /*验后方差*/
 } sol_t;
 
@@ -1282,7 +1285,12 @@ typedef struct {        /* RTK server type */
     char cmds_periodic[3][MAXRCVCMD]; /* periodic commands */
     char cmd_reset[MAXRCVCMD]; /* reset command */
     double bl_reset;    /* baseline length to reset (km) */
-    lock_t lock;        /* lock flag */
+	lock_t lock;        /* lock flag */
+
+	/*lyj add*/
+	int allepoch;
+	int HAepoch;
+    int VAepoch;
 } rtksvr_t;
 
 typedef struct {        /* GIS data point type */

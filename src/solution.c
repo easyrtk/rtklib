@@ -1143,7 +1143,6 @@ static int outecef(uint8_t *buff, const char *s, const sol_t *sol,
 {
     const char *sep=opt2sep(opt);
 	char *p=(char *)buff;
-    double RefRovxyz[3],RefRovblh[3],dxyz[3],denu[3]={0},dRefRovxyz[3];
 	char *soltype;
 	int HA,VA;
 	int i;
@@ -1154,24 +1153,7 @@ static int outecef(uint8_t *buff, const char *s, const sol_t *sol,
 	ecef2pos(sol->rr,pos);
     soltocov(sol,P);
 	covenu(pos,P,Q);
-    hpl=SQRT(Q[0]+Q[4])*6;
-	vpl=SQRT(Q[8])*6;
 
-	/*lyj add : compute denu*/
-	for (i=0;i<3;i++) RefRovxyz[i]=sol->RefRovxyz[i];
-	ecef2pos(RefRovxyz, RefRovblh);/*输入的流动站参考坐标  xyz -> blh*/
-	if ((sol->dRefRovenu[0]!=0)||(sol->dRefRovenu[1]!=0)||(sol->dRefRovenu[2]!=0)) {
-		enu2ecef(RefRovblh, sol->dRefRovenu, dRefRovxyz);
-		for (i=0;i<3;i++) RefRovxyz[i]+=dRefRovxyz[i];
-		ecef2pos(RefRovxyz, RefRovblh);  /*输入的流动站参考坐标  xyz -> blh*/
-	}
-    for(i=0;i<3;i++) dxyz[i]=sol->rr[i]-RefRovxyz[i];
-	ecef2enu(RefRovblh, dxyz, denu); /*计算得到denu*/
-
-	if (fabs(denu[0])>hpl||fabs(denu[1])>hpl) HA=1;
-	else HA=0;
-	if (fabs(denu[2])>vpl) VA=1;
-	else VA=0;
 	switch (sol->stat) {
 	case 1: soltype="fixed"; break;
 	case 2: soltype="float"; break;
@@ -1179,15 +1161,13 @@ static int outecef(uint8_t *buff, const char *s, const sol_t *sol,
 	default:  soltype="float"; break;
 	}
 
-	/*lyj add*/
-
 	p+=sprintf(p,"%s%s%14.4f%s%14.4f%s%14.4f"
 				 "%s%8.4f%s%8.4f%s%8.4f"
 				 "%s%8.4f%s%8.4f%s%3d%s%3d"
 				 "%s%3d%s%6.2f%s%6.1f%s%8.4f%s%6s",
 			   s,sep,sol->rr[0],sep,sol->rr[1],sep,sol->rr[2],
-			   sep,denu[0],sep,denu[1],sep,denu[2],
-			   sep,hpl,sep,vpl,sep,HA,sep,VA,
+			   sep,sol->enu[0],sep,sol->enu[1],sep,sol->enu[2],
+			   sep,sol->HPL,sep,sol->VPL,sep,sol->HA,sep,sol->VA,
 			   sep,sol->ns,sep,sol->age,sep,sol->ratio,sep,sol->var,sep,soltype);
 //    p+=sprintf(p,"%s%s%14.4f%s%14.4f%s%14.4f%s%3d%s%3d%s%8.4f%s%8.4f%s%8.4f%s"
 //               "%8.4f%s%8.4f%s%8.4f%s%6.2f%s%6.1f",
@@ -1214,10 +1194,7 @@ static int outpos(uint8_t *buff, const char *s, const sol_t *sol,
     double pos[3],vel[3],dms1[3],dms2[3],P[9],Q[9];
     const char *sep=opt2sep(opt);
 	char *p=(char *)buff;
-	double RefRovxyz[3],RefRovblh[3],dxyz[3],denu[3]={0},dRefRovxyz[3];
 	char *soltype;
-    double hpl,vpl;
-	int HA,VA;
     int i;
     
     trace(3,"outpos  :\n");
@@ -1225,36 +1202,13 @@ static int outpos(uint8_t *buff, const char *s, const sol_t *sol,
     ecef2pos(sol->rr,pos);
     soltocov(sol,P);
 	covenu(pos,P,Q);
-    Q[0]+=0.005*0.005; /* add 5 mm in N,E, and U */
-    Q[4]+=0.005*0.005;
-    Q[8]+=0.005*0.005;
-    hpl=SQRT(Q[0]+Q[4])*6.5; /* change to 6.5 from 6.0 */
-	vpl=SQRT(Q[8])*7.5;      /* change to 7.5 from 6.0 */
 
-	/*lyj add : compute denu*/
-	for (i=0;i<3;i++) RefRovxyz[i]=sol->RefRovxyz[i];
-	ecef2pos(RefRovxyz, RefRovblh);/*输入的流动站参考坐标  xyz -> blh*/
-	if ((sol->dRefRovenu[0]!=0)||(sol->dRefRovenu[1]!=0)||(sol->dRefRovenu[2]!=0)) {
-		enu2ecef(RefRovblh, sol->dRefRovenu, dRefRovxyz);
-		for (i=0;i<3;i++) RefRovxyz[i]+=dRefRovxyz[i];
-		ecef2pos(RefRovxyz, RefRovblh);  /*输入的流动站参考坐标  xyz -> blh*/
-	}
-    for(i=0;i<3;i++) dxyz[i]=sol->rr[i]-RefRovxyz[i];
-	ecef2enu(RefRovblh, dxyz, denu); /*计算得到denu*/
-
-	if (fabs(denu[0])>hpl||fabs(denu[1])>hpl) HA=1;
-	else HA=0;
-	if (fabs(denu[2])>vpl) VA=1;
-	else VA=0;
 	switch (sol->stat) {
 	case 1: soltype="fixed"; break;
 	case 2: soltype="float"; break;
 
 	default:  soltype="float"; break;
 	}
-
-	/*lyj add*/
-
 
 	if (opt->height==1) { /* geodetic height */
 		pos[2]-=geoidh(pos);
@@ -1272,8 +1226,8 @@ static int outpos(uint8_t *buff, const char *s, const sol_t *sol,
 	p+=sprintf(p,"%s%10.4f%s%8.4f%s%8.4f%s%8.4f"
 				 "%s%8.4f%s%8.4f%s%3d%s%3d"
 				 "%s%3d%s%6.2f%s%6.1f%s%8.4f%s%6s",
-			   sep,pos[2],sep,denu[0],sep,denu[1],sep,denu[2],
-			   sep,hpl,sep,vpl,sep,HA,sep,VA,
+			   sep,pos[2],sep,sol->enu[0],sep,sol->enu[1],sep,sol->enu[2],
+			   sep,sol->HPL,sep,sol->VPL,sep,sol->HA,sep,sol->VA,
 			   sep,sol->ns,sep,sol->age,sep,sol->ratio,sep,sol->var,sep,soltype);
 //	p+=sprintf(p,"%s%10.4f%s%3d%s%3d%s%8.4f%s%8.4f%s%8.4f%s%8.4f%s%8.4f%s%8.4f"
 //			   "%s%6.2f%s%6.1f",
@@ -1298,30 +1252,15 @@ static int outpos(uint8_t *buff, const char *s, const sol_t *sol,
 static int outenu(uint8_t *buff, const char *s, const sol_t *sol,
                   const double *rb, const solopt_t *opt)
 {
-    double pos[3],rr[3],enu[3],P[9],Q[9];
+	double pos[3],rr[3],enu[3],P[9],Q[9];
     int i;
     const char *sep=opt2sep(opt);
 	char *p=(char *)buff;
-    double RefRovxyz[3],RefRovblh[3],dxyz[3],denu[3]={0},dRefRovxyz[3];
 	char *soltype;
     int HA,VA;
     
 	trace(3,"outenu  :\n");
 
-    /*lyj add : compute denu*/
-	for (i=0;i<3;i++) RefRovxyz[i]=sol->RefRovxyz[i];
-	ecef2pos(RefRovxyz, RefRovblh);/*输入的流动站参考坐标  xyz -> blh*/
-	if ((sol->dRefRovenu[0]!=0)||(sol->dRefRovenu[1]!=0)||(sol->dRefRovenu[2]!=0)) {
-		enu2ecef(RefRovblh, sol->dRefRovenu, dRefRovxyz);
-		for (i=0;i<3;i++) RefRovxyz[i]+=dRefRovxyz[i];
-		ecef2pos(RefRovxyz, RefRovblh);  /*输入的流动站参考坐标  xyz -> blh*/
-	}
-    for(i=0;i<3;i++) dxyz[i]=sol->rr[i]-RefRovxyz[i];
-	ecef2enu(RefRovblh, dxyz, denu); /*计算得到denu*/
-	if (fabs(denu[0])>0.3||fabs(denu[1])>0.3) HA=1;
-	else HA=0;
-	if (fabs(denu[2])>1) VA=1;
-	else VA=0;
 	switch (sol->stat) {
 	case 1: soltype="fixed"; break;
 	case 2: soltype="float"; break;
@@ -1329,17 +1268,12 @@ static int outenu(uint8_t *buff, const char *s, const sol_t *sol,
 	default:  soltype="float"; break;
 	}
 
-	/*lyj add*/
     
     for (i=0;i<3;i++) rr[i]=sol->rr[i]-rb[i];
     ecef2pos(rb,pos);
     soltocov(sol,P);
     covenu(pos,P,Q);
-    Q[0]+=0.005*0.005; /* add 5 mm in N,E, and U */
-    Q[4]+=0.005*0.005;
-    Q[8]+=0.005*0.005;
-    /*hpl=SQRT(Q[0]+Q[4])*6.5;*/
-	/*vpl=SQRT(Q[8])*7.5;*/
+
 	ecef2enu(pos,rr,enu);
 
 	p+=sprintf(p,"%s%s%14.4f%s%14.4f%s%14.4f"
@@ -1347,8 +1281,8 @@ static int outenu(uint8_t *buff, const char *s, const sol_t *sol,
 				 "%s%8.4f%s%8.4f%s%3d%s%3d"
 				 "%s%3d%s%6.2f%s%6.1f%s%8.4f%s%6s\r\n",
 			   s,sep,enu[0],sep,enu[1],sep,enu[2],
-			   sep,denu[0],sep,denu[1],sep,denu[2],
-			   sep,sol->HPL,sep,sol->VPL,sep,HA,sep,VA,
+			   sep,sol->enu[0],sep,sol->enu[1],sep,sol->enu[2],
+			   sep,sol->HPL,sep,sol->VPL,sep,sol->HA,sep,sol->VA,
 			   sep,sol->ns,sep,sol->age,sep,sol->ratio,sep,sol->var,sep,soltype);
 //    p+=sprintf(p,"%s%s%14.4f%s%14.4f%s%14.4f%s%3d%s%3d%s%8.4f%s%8.4f%s%8.4f%s"
 //               "%8.4f%s%8.4f%s%8.4f%s%6.2f%s%6.1f\r\n",
