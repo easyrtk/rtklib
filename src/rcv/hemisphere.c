@@ -1563,7 +1563,7 @@ extern int readGnssObs(unsigned char* buff, int nStart, obs_t *obs)
 
 			if (obs->data[Index].SNR[nL] == 0.0)
 			{
-				obs->data[Index].SNR[nL] = block.dSNR / SNR_UNIT;
+				obs->data[Index].SNR[nL] = (uint16_t)(block.dSNR / SNR_UNIT + 0.5);
 			}
 			obs->data[Index].code[nL] = codeType;
 			obs->data[Index].time = gpst2time(item.m_wWeek, item.m_dTow);
@@ -1589,7 +1589,7 @@ extern int readGnssObs(unsigned char* buff, int nStart, obs_t *obs)
 			}
 			if (obs->data[Index].SNR[nL] == 0.0)
 			{
-				obs->data[Index].SNR[nL] = block.dSNR / SNR_UNIT;
+				obs->data[Index].SNR[nL] = (uint16_t)(block.dSNR / SNR_UNIT + 0.5);
 			}
 			obs->data[Index].code[nL] = codeType;
 			obs->data[Index].time = gpst2time(item.m_wWeek, item.m_dTow);
