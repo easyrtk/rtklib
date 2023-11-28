@@ -52,7 +52,6 @@ __fastcall TMonitorDialog::TMonitorDialog(TComponent* Owner)
 //---------------------------------------------------------------------------
 void __fastcall TMonitorDialog::FormShow(TObject *Sender)
 {
-//	ft=fopen("D:\\GeoPnt\\rtkNaviCode\\data_receive\\20231119_上海log数据\\MINHANG\\VRS_MINHANG-2023-11-19-08-22-55.txt", "w");
 	TypeF=Type->ItemIndex;
 	Label->Caption="";
 	ClearTable();
@@ -60,7 +59,6 @@ void __fastcall TMonitorDialog::FormShow(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TMonitorDialog::FormClose(TObject *Sender, TCloseAction &Action)
 {
-//	fclose(ft);
 	free_rtcm(&rtcm);
 	free_raw(&raw);
 	Release();
@@ -299,7 +297,6 @@ void __fastcall TMonitorDialog::AddConsole(uint8_t *msg, int len, int mode)
 		if (*(p-1)=='\n') {
 			ConBuff->Strings[ConBuff->Count-1]=buff;
 			ConBuff->Add("");
-//			if(mode)  fprintf(ft,"%s",buff);
 			*(p=buff)=0;
 			if (ConBuff->Count>=MAXLINE) ConBuff->Delete(0);
 		}

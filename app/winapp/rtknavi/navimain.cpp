@@ -2360,7 +2360,7 @@ void __fastcall TMainForm::OpenMoniPort(int port)
 {
     AnsiString s;
     int i;
-    char path[64];
+	char path[64];
     
     if (port<=0) return;
     
