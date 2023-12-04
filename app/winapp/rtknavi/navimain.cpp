@@ -48,7 +48,7 @@
 #pragma resource "*.dfm"
 TMainForm *MainForm;
 #define PRGNAME     "地基增强完好性云端一体测试系统"           // program name
-#define VER_APP     "1.0.0"
+#define VER_APP     "1.0.2"
 #define TRACEFILE   "rtknavi_%Y%m%d%h%M.trace" // debug trace file
 #define STATFILE    "rtknavi_%Y%m%d%h%M.stat"  // solution status file
 #define CLORANGE    (TColor)0x00AAFF

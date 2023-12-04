@@ -1642,7 +1642,7 @@ static int relpos(rtk_t *rtk, const obsd_t *obs, int nu, int nr,
         if (rtk->opt.dynamics) { /* velocity and covariance */
             for (i=3;i<6;i++) {
                 rtk->sol.rr[i]=rtk->x[i];
-                rtk->sol.qv[i-3]=(float)rtk->P[i+i*rtk->nx];
+                rtk->sol.qv[i-3]=(float)rtk->P[i+i*rtk->nx];  
             }
             rtk->sol.qv[3]=(float)rtk->P[4+3*rtk->nx];
             rtk->sol.qv[4]=(float)rtk->P[5+4*rtk->nx];
@@ -1674,9 +1674,15 @@ static int relpos(rtk_t *rtk, const obsd_t *obs, int nu, int nr,
         Q[0]+=0.005*0.005; /* add 5 mm in N,E, and U */
 		Q[4]+=0.005*0.005;
 		Q[8]+=0.005*0.005;
-		rtk->sol.HPL=SQRT(Q[0]+Q[4])*6.5; /* change to 6.5 from 6.0 */
-		rtk->sol.VPL=SQRT(Q[8])*7.5;      /* change to 7.5 from 6.0 */
-
+		if (stat==SOLQ_FIX) {
+			rtk->sol.HPL=SQRT(Q[0]+Q[4])*13; /* change to 13 from 6.5 */
+			rtk->sol.VPL=SQRT(Q[8])*15;      /* change to 15 from 7.5 */			
+		}
+		else {
+			rtk->sol.HPL=SQRT(Q[0]+Q[4])*60; /* change to 13 from 6.5 */
+			rtk->sol.VPL=SQRT(Q[8])*75;      /* change to 15 from 7.5 */
+        }
+		
 		/*compute enu*/
 		for (i=0;i<3;i++) RefRovxyz[i]=rtk->sol.RefRovxyz[i];
 		ecef2pos(RefRovxyz, RefRovblh);/*输入的流动站参考坐标  xyz -> blh*/
