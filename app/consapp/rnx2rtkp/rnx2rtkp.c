@@ -97,7 +97,7 @@ int main(int argc, char **argv)
     solopt_t solopt=solopt_default;
     filopt_t filopt={""};
     gtime_t ts={0},te={0};
-    double tint=0.0,es[]={2000,1,1,0,0,0},ee[]={2000,12,31,23,59,59},pos[3];
+    double tint=0.0,es[]={2000,1,1,0,0,0},er[]={2000,1,1,0,0,0},ee[]={2000,12,31,23,59,59},pos[3]={0};
     int i,j,n,ret;
     char *infile[MAXFILE],*outfile="",*p;
     
@@ -128,6 +128,11 @@ int main(int argc, char **argv)
             sscanf(argv[++i],"%lf/%lf/%lf",ee,ee+1,ee+2);
             sscanf(argv[++i],"%lf:%lf:%lf",ee+3,ee+4,ee+5);
             te=epoch2time(ee);
+        }
+        else if (!strcmp(argv[i],"-tr")&&i+2<argc) {
+            sscanf(argv[++i],"%lf/%lf/%lf",er,er+1,er+2);
+            sscanf(argv[++i],"%lf:%lf:%lf",er+3,er+4,er+5);
+            prcopt.tr=epoch2time(er);
         }
         else if (!strcmp(argv[i],"-ti")&&i+1<argc) tint=atof(argv[++i]);
         else if (!strcmp(argv[i],"-k")&&i+1<argc) {++i; continue;}

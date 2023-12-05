@@ -1041,6 +1041,7 @@ typedef struct {        /* processing options type */
 	/*lyj add*/
 	double RefRovxyz[3];  /*流动站参考坐标 ecef*/
 	double dRefRovenu[3]; /*流动站参考坐标 enu变化量*/
+    gtime_t tr;           /* approximate time for rtcm */
 } prcopt_t;
 
 typedef struct {        /* solution options type */
@@ -1812,6 +1813,7 @@ EXPORT void gis_free(gis_t *gis);
 extern int showmsg(const char *format,...);
 extern void settspan(gtime_t ts, gtime_t te);
 extern void settime(gtime_t time);
+
 
 #ifdef __cplusplus
 }

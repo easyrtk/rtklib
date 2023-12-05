@@ -53,7 +53,21 @@
 #define MAXINFILE   1000         /* max number of input files */
 
 /* constants/global variables ------------------------------------------------*/
+typedef struct                 /* rtcm coordinate */
+{
+    gtime_t time;
+    double pos[3];
+}rpos_t;
+typedef struct
+{
+    rpos_t *pos;
+    int nmax;
+    int n;
+}rposs_t;
 
+static rposs_t bposs={0};       /* base coordinate */
+static rposs_t rposs={0};       /* rove coordinate */
+static rtcm_t rtcm_rcv;         /* rtcm for base and rove decoder */
 static pcvs_t pcvss={0};        /* receiver antenna parameters */
 static pcvs_t pcvsr={0};        /* satellite antenna parameters */
 static obs_t obss={0};          /* observation data */
@@ -238,7 +252,7 @@ static int inputobs(obsd_t *obs, int solq, const prcopt_t *popt)
 {
     gtime_t time={0};
     int i,nu,nr,n=0;
-    
+    double dt=0;
     trace(3,"infunc  : revs=%d iobsu=%d iobsr=%d isbs=%d\n",revs,iobsu,iobsr,isbs);
     
     if (0<=iobsu&&iobsu<obss.n) {
@@ -264,7 +278,6 @@ static int inputobs(obsd_t *obs, int solq, const prcopt_t *popt)
         for (i=0;i<nu&&n<MAXOBS*2;i++) obs[n++]=obss.data[iobsu+i];
         for (i=0;i<nr&&n<MAXOBS*2;i++) obs[n++]=obss.data[iobsr+i];
         iobsu+=nu;
-        
         /* update sbas corrections */
         while (isbs<sbss.n) {
             time=gpst2time(sbss.msgs[isbs].week,sbss.msgs[isbs].tow);
@@ -332,8 +345,8 @@ static void procpos(FILE *fp, const prcopt_t *popt, const solopt_t *sopt,
     sol_t sol={{0}};
     rtk_t rtk;
     obsd_t obs[MAXOBS*2]; /* for rover and base */
-    double rb[3]={0};
-    int i,nobs,n,solstatic,pri[]={6,1,2,3,4,5,1,6};
+    double rb[3]={0},dt=0;
+    int i,nobs,n,solstatic,pri[]={6,1,2,3,4,5,1,6},j=0,b_bpos_ok=0;
     
     trace(3,"procpos : mode=%d\n",mode);
     
@@ -355,6 +368,25 @@ static void procpos(FILE *fp, const prcopt_t *popt, const solopt_t *sopt,
         /* carrier-phase bias correction */
         if (!strstr(popt->pppopt,"-ENA_FCB")) {
             corr_phase_bias_ssr(obs,n,&navs);
+        }
+        /* find base coordinate */
+        b_bpos_ok=0;
+        for (i=0;i<n;++i) {
+            if (obs[i].rcv==1) continue;
+            for (j=0;j<bposs.n;++j) {
+                dt=timediff(obs[i].time,bposs.pos[j].time);
+                if (dt>=0.0) {
+                    rtk.rb[0]=bposs.pos[j].pos[0];
+                    rtk.rb[1]=bposs.pos[j].pos[1];
+                    rtk.rb[2]=bposs.pos[j].pos[2];
+                    b_bpos_ok=1;
+                    break;
+                }
+            }
+            if (b_bpos_ok) {
+                rtk.opt.refpos=POSOPT_RTCM;
+                break;
+            }
         }
         if (!rtkpos(&rtk,obs,n,&navs)) continue;
         
@@ -590,6 +622,178 @@ static void freepreceph(nav_t *nav, sbs_t *sbs)
     if (fp_rtcm) fclose(fp_rtcm);
     free_rtcm(&rtcm);
 }
+/* save cycle slips ----------------------------------------------------------*/
+static void saveslips_(uint8_t slips[][NFREQ+NEXOBS], obsd_t *data)
+{
+    int i;
+    for (i=0;i<NFREQ+NEXOBS;i++) {
+        if (data->LLI[i]&1) slips[data->sat-1][i]|=LLI_SLIP;
+    }
+}
+/* restore cycle slips -------------------------------------------------------*/
+static void restslips_(uint8_t slips[][NFREQ+NEXOBS], obsd_t *data)
+{
+    int i;
+    for (i=0;i<NFREQ+NEXOBS;i++) {
+        if (slips[data->sat-1][i]&1) data->LLI[i]|=LLI_SLIP;
+        slips[data->sat-1][i]=0;
+    }
+}
+/* add observation data ------------------------------------------------------*/
+static int addobsdata_(obs_t *obs, const obsd_t *data)
+{
+    obsd_t *obs_data;
+    
+    if (obs->nmax<=obs->n) {
+        if (obs->nmax<=0) obs->nmax=262144; else obs->nmax*=2;
+        if (!(obs_data=(obsd_t *)realloc(obs->data,sizeof(obsd_t)*obs->nmax))) {
+            trace(1,"addobsdata: malloc error n=%dx%d\n",sizeof(obsd_t),obs->nmax);
+            free(obs->data); obs->data=NULL; obs->n=obs->nmax=0;
+            return -1;
+        }
+        obs->data=obs_data;
+    }
+    obs->data[obs->n++]=*data;
+    return 1;
+}
+static int addrtcmpos(rposs_t* rpos, gtime_t time, double *xyz)
+{
+    rpos_t *rpos_data=NULL;
+    double dxyz[3]={0};
+    int b_new_pos=1;
+    int ret=0;
+    if (rpos->n>0) {
+        dxyz[0]=xyz[0]-rpos->pos[rpos->n-1].pos[0];
+        dxyz[1]=xyz[1]-rpos->pos[rpos->n-1].pos[1];
+        dxyz[2]=xyz[2]-rpos->pos[rpos->n-1].pos[2];
+        if (sqrt(dxyz[0]*dxyz[0]+dxyz[1]*dxyz[1]+dxyz[2]*dxyz[2])<0.001) b_new_pos=0;
+    }
+    if (b_new_pos) {
+        if (rpos->nmax<=rpos->n) {
+            if (rpos->nmax<=0) rpos->nmax=3600; else rpos->nmax*=2;
+            if (!(rpos_data=(rpos_t*)realloc(rpos->pos, sizeof(rpos_t)*rpos->nmax))) {
+                trace(1, "addrtcmpos: malloc error n=%dx%d\n",sizeof(rpos_t),rpos->nmax);
+                free(rpos->pos); rpos->pos=NULL; rpos->n=rpos->nmax=0;
+                return -1;
+            }
+            rpos->pos=rpos_data;
+        }
+        rpos->pos[rpos->n].time=time;
+        rpos->pos[rpos->n].pos[0]=xyz[0];
+        rpos->pos[rpos->n].pos[1]=xyz[1];
+        rpos->pos[rpos->n].pos[2]=xyz[2];
+        ++rpos->n;
+        ret=1;
+    }
+    return ret;
+}
+/* add ephemeris to navigation data ------------------------------------------*/
+static int add_eph_(nav_t *nav, const eph_t *eph)
+{
+    eph_t *nav_eph;
+    
+    if (nav->nmax<=nav->n) {
+        nav->nmax+=1024;
+        if (!(nav_eph=(eph_t *)realloc(nav->eph,sizeof(eph_t)*nav->nmax))) {
+            trace(1,"decode_eph malloc error: n=%d\n",nav->nmax);
+            free(nav->eph); nav->eph=NULL; nav->n=nav->nmax=0;
+            return 0;
+        }
+        nav->eph=nav_eph;
+    }
+    nav->eph[nav->n++]=*eph;
+    return 1;
+}
+static int add_geph_(nav_t *nav, const geph_t *geph)
+{
+    geph_t *nav_geph;
+    
+    if (nav->ngmax<=nav->ng) {
+        nav->ngmax+=1024;
+        if (!(nav_geph=(geph_t *)realloc(nav->geph,sizeof(geph_t)*nav->ngmax))) {
+            trace(1,"decode_geph malloc error: n=%d\n",nav->ngmax);
+            free(nav->geph); nav->geph=NULL; nav->ng=nav->ngmax=0;
+            return 0;
+        }
+        nav->geph=nav_geph;
+    }
+    nav->geph[nav->ng++]=*geph;
+    return 1;
+}
+static int add_seph_(nav_t *nav, const seph_t *seph)
+{
+    seph_t *nav_seph;
+    
+    if (nav->nsmax<=nav->ns) {
+        nav->nsmax+=1024;
+        if (!(nav_seph=(seph_t *)realloc(nav->seph,sizeof(seph_t)*nav->nsmax))) {
+            trace(1,"decode_seph malloc error: n=%d\n",nav->nsmax);
+            free(nav->seph); nav->seph=NULL; nav->ns=nav->nsmax=0;
+            return 0;
+        }
+        nav->seph=nav_seph;
+    }
+    nav->seph[nav->ns++]=*seph;
+    return 1;
+}
+static int readrtcmobsnav(const char *file, int rcv, gtime_t ts, gtime_t te,gtime_t tr, double tint, obs_t *obs, nav_t *nav)
+{
+    int ret = 0;
+    int dat=0;
+    int i=0;
+    int stat=0;
+    int sys=0;
+    int prn=0;
+    uint8_t slips[MAXSAT][NFREQ+NEXOBS]={{0}};
+    FILE* frtcm = file?fopen(file,"rb"):NULL;
+    if (frtcm &&init_rtcm(&rtcm_rcv))
+    {
+        rtcm_rcv.time=rtcm_rcv.time_s=tr;
+        while(!feof(frtcm)&&(dat=fgetc(frtcm))!=EOF&&stat>=0)
+        {
+            ret=input_rtcm3(&rtcm_rcv,(uint8_t)dat);
+            if (ret==1) {
+                for (i=0;i<rtcm_rcv.obs.n;i++) {
+                    /* save cycle slip */
+                    saveslips_(slips,rtcm_rcv.obs.data+i);
+                }
+                /* screen data by time */
+                if (rtcm_rcv.obs.n>0&&!screent(rtcm_rcv.obs.data[0].time,ts,te,tint)) continue;
+        
+                for (i=0;i<rtcm_rcv.obs.n;i++) {
+            
+                    /* restore cycle slip */
+                    restslips_(slips, rtcm_rcv.obs.data+i);
+            
+                    rtcm_rcv.obs.data[i].rcv=(uint8_t)rcv;
+            
+                    /* save obs data */
+                    if ((stat=addobsdata_(obs,rtcm_rcv.obs.data+i))<0) break;
+                }
+            } else if (ret==5) {
+                if (rcv==1) 
+                    addrtcmpos(&rposs,rtcm_rcv.time,rtcm_rcv.sta.pos);
+                else
+                    addrtcmpos(&bposs, rtcm_rcv.time, rtcm_rcv.sta.pos);
+            } else if (ret==2) {
+                if (rtcm_rcv.ephsat>0) {
+                    sys=satsys(rtcm_rcv.ephsat,&prn);
+                    if (sys==SYS_GLO)
+                        add_geph_(nav,rtcm_rcv.nav.geph+(prn-1));
+                    else if (sys==SYS_SBS)
+                        add_seph_(nav,rtcm_rcv.nav.seph+(prn-1));
+                    else if (sys==SYS_GPS||sys==SYS_CMP||sys==SYS_QZS)
+                        add_eph_(nav,rtcm_rcv.nav.eph+(rtcm_rcv.ephsat-1));
+                    else if (sys==SYS_GAL)
+                        add_eph_(nav,rtcm_rcv.nav.eph+(rtcm_rcv.ephsat-1+MAXSAT*rtcm_rcv.ephset));
+                }
+            }
+        }
+        free_rtcm(&rtcm_rcv);
+    }
+    if (frtcm) fclose(frtcm);
+    return stat<0;
+}
 /* read obs and nav data -----------------------------------------------------*/
 static int readobsnav(gtime_t ts, gtime_t te, double ti, char **infile,
                       const int *index, int n, const prcopt_t *prcopt,
@@ -615,6 +819,11 @@ static int readobsnav(gtime_t ts, gtime_t te, double ti, char **infile,
         /* read rinex obs and nav file */
         if (readrnxt(infile[i],rcv,ts,te,ti,prcopt->rnxopt[rcv<=1?0:1],obs,nav,
                      rcv<=2?sta+rcv-1:NULL)<0) {
+            checkbrk("error : insufficient memory");
+            trace(1,"insufficient memory\n");
+            return 0;
+        }
+        if (readrtcmobsnav(infile[i],rcv,ts,te,prcopt->tr,ti,obs,nav)) {
             checkbrk("error : insufficient memory");
             trace(1,"insufficient memory\n");
             return 0;
@@ -811,6 +1020,9 @@ static void closeses(nav_t *nav, pcvs_t *pcvs, pcvs_t *pcvr)
     /* free erp data */
     free(nav->erp.data); nav->erp.data=NULL; nav->erp.n=nav->erp.nmax=0;
     
+    /* free rposs, bposs */
+    if (rposs.nmax>0) { free(rposs.pos); rposs.nmax=rposs.n=0; rposs.pos=NULL;}
+    if (bposs.nmax>0) { free(bposs.pos); bposs.nmax=bposs.n=0; bposs.pos=NULL;}
     /* close solution statistics and debug trace */
     rtkclosestat();
     traceclose();
