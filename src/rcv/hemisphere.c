@@ -1641,7 +1641,7 @@ static int readGpsEph(unsigned char* buff, int nStart, nav_t *nav)
 
 	// time convert
 
-	addEph(nav, &eph);
+	/*addEph(nav, &eph);*/
 	return 2;
 }
 
