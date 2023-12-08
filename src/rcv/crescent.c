@@ -34,12 +34,16 @@
 
 #define ID_CRESPOS   1          /* hemis msg id: bin 1 position/velocity */
 #define ID_CRESOBS   16         /* hemis msg id: bin 16 observation */
-#define ID_CRESGLOEPH 65        /* hemis msg id: bin 65 glonass ephemeris */
+#define ID_CRESGLOEPH 65        /* hemis msg id: bin 65 GLONASS ephemeris */
 #define ID_CRESGLORAW 66        /* hemis msg id: bin 66 glonass L1/L2 phase and code */
 #define ID_CRESRAW2 76          /* hemis msg id: bin 76 dual-freq raw */
 #define ID_CRESWAAS 80          /* hemis msg id: bin 80 waas messages */
 #define ID_CRESIONUTC 94        /* hemis msg id: bin 94 ion/utc parameters */
-#define ID_CRESEPH  95          /* hemis msg id: bin 95 raw ephemeris */
+#define ID_CRESGPSEPH   95      /* hemis msg id: bin  95 GPS   ephemeris */
+#define ID_CRESBDS2EPH  35      /* hemis msg id: bin  35 BDS-2 ephemeris */
+#define ID_CRESBDS3EPH 135      /* hemis msg id: bin 135 BDS-3 ephemeris */
+#define ID_CRESGALEPH  45       /* hemis msg id: bin  45 GAL   ephemeris */
+#define ID_CRESQZSEPH  25       /* hemis msg id: bin  25 QZSS  ephemeris */
 #define ID_CRESRAW  96          /* hemis msg id: bin 96 raw phase and code */
 
 #define SNR2CN0_L1  30.0        /* hemis snr to c/n0 offset (db) L1 */
@@ -276,7 +280,7 @@ static int decode_cresraw2(raw_t *raw)
     return 1;
 }
 /* decode bin 95 ephemeris ---------------------------------------------------*/
-static int decode_creseph(raw_t *raw)
+static int decode_cresgpseph(raw_t *raw, int sys)
 {
     eph_t eph={0};
     uint32_t word;
@@ -290,8 +294,8 @@ static int decode_creseph(raw_t *raw)
         return -1;
     }
     prn=U2(p);
-    if (!(sat=satno(SYS_GPS,prn))) {
-        trace(2,"crescent bin 95 satellite number error: prn=%d\n",prn);
+    if (!(sat=satno(sys,prn))) {
+        trace(2,"crescent bin 95 satellite number error: sys=%i,prn=%d\n",sys,prn);
         return -1;
     }
     for (i=0;i<3;i++) for (j=0;j<10;j++) {
@@ -500,7 +504,7 @@ static int decode_cresgloeph(raw_t *raw)
     }
     for (i=0;i<5;i++) {
         for (j=0;j<3;j++) for (k=3;k>=0;k--) {
-            str[k+j*4]=U1(p++);
+                str[k+j*4]=U1(p++);
         }
         if ((no=getbitu(str,1,4))!=i+1) {
             trace(2,"creasent bin 65 string no error: sat=%2d no=%d %d\n",sat,
@@ -526,7 +530,6 @@ static int decode_cresgloeph(raw_t *raw)
 static int decode_cres(raw_t *raw)
 {
     int type=U2(raw->buff+4);
-    int ret = 0;
     
     trace(3,"decode_cres: type=%2d len=%d\n",type,raw->len);
     
@@ -538,15 +541,19 @@ static int decode_cres(raw_t *raw)
         sprintf(raw->msgtype,"HEMIS %2d (%4d):",type,raw->len);
     }
     switch (type) {
-        case ID_CRESPOS   : return readMsg1(raw->buff, 8, &raw->sta);
+        case ID_CRESPOS   : return readMsg1(raw);
         case ID_CRESRAW   : return decode_cresraw(raw);
         case ID_CRESRAW2  : return decode_cresraw2(raw);
-        //case ID_CRESEPH   : return decode_creseph(raw);
+        case ID_CRESGPSEPH: return decode_cresgpseph(raw,SYS_GPS);
         case ID_CRESWAAS  : return decode_creswaas(raw);
         case ID_CRESIONUTC: return decode_cresionutc(raw);
-        //case ID_CRESGLORAW: return decode_cresgloraw(raw);
-        //case ID_CRESGLOEPH: return decode_cresgloeph(raw);
-        case ID_CRESOBS   : return readGnssObs(raw->buff, 8, &raw->obs);
+        /*case ID_CRESGLORAW: return decode_cresgloraw(raw);*/
+        case ID_CRESGLOEPH: return decode_cresgloeph(raw);
+        case ID_CRESOBS   : return readGnssObs(raw);
+        case ID_CRESBDS2EPH:return readBDS2Eph(raw);
+        case ID_CRESGALEPH: return readGalEph(raw);
+        case ID_CRESQZSEPH: return decode_cresgpseph(raw,SYS_QZS);
+        /*case ID_CRESBDS3EPH: return readBDS3Eph(raw);*/
     }
     return 0;
 }

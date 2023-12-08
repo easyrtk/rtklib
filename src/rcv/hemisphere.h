@@ -7,8 +7,11 @@ extern "C" {
 
 #include "rtklib.h"
 
-extern int readGnssObs(unsigned char* buff, int nStart, obs_t *obs);
-extern int readMsg1   (unsigned char* buff, int nStart, sta_t *sta);
+extern int readGnssObs(raw_t *raw);
+extern int readMsg1   (raw_t *raw);
+extern int readBDS2Eph(raw_t *raw);
+extern int readBDS3Eph(raw_t *raw);
+extern int readGalEph (raw_t *raw);
 
 #ifdef __cplusplus
 }

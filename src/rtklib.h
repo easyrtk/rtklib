@@ -613,6 +613,7 @@ typedef struct {        /* GPS/QZS/GAL broadcast ephemeris type */
                         /* CMP:tgd[0]=TGD_B1I ,tgd[1]=TGD_B2I/B2b,tgd[2]=TGD_B1Cp */
                         /*     tgd[3]=TGD_B2ap,tgd[4]=ISC_B1Cd   ,tgd[5]=ISC_B2ad */
     double Adot,ndot;   /* Adot,ndot for CNAV */
+    double deltaA;      /* deltaA for BDS3 CNAV */
 } eph_t;
 
 typedef struct {        /* GLONASS broadcast ephemeris type */

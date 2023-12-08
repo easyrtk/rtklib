@@ -2458,7 +2458,7 @@ extern int outrnxnavh(FILE *fp, const rnxopt_t *opt, const nav_t *nav)
 extern int outrnxnavb(FILE *fp, const rnxopt_t *opt, const eph_t *eph)
 {
     double ep[6],ttr;
-    int week,sys,prn;
+    int week,sys,prn,BDS3_eph_flg=0;
     char code[32],*sep;
     
     trace(3,"outrnxnavb: sat=%2d\n",eph->sat);
@@ -2470,6 +2470,10 @@ extern int outrnxnavb(FILE *fp, const rnxopt_t *opt, const eph_t *eph)
     }
     else {
         time2epoch(gpst2bdt(eph->toc),ep); /* gpst -> bdt */
+        if (eph->code!=0) {
+            BDS3_eph_flg=1;
+            if (opt->rnxver<400) return 0; /* do not use BDS3 CNAV eph if rinex is not 4.X */
+        } 
     }
     if ((opt->rnxver>=300&&sys==SYS_GPS)||(opt->rnxver>=212&&sys==SYS_GAL)||
         (opt->rnxver>=302&&sys==SYS_QZS)||(opt->rnxver>=302&&sys==SYS_CMP)||
@@ -2501,7 +2505,8 @@ extern int outrnxnavb(FILE *fp, const rnxopt_t *opt, const eph_t *eph)
     outnavf(fp,eph->cuc    );
     outnavf(fp,eph->e      );
     outnavf(fp,eph->cus    );
-    outnavf(fp,sqrt(eph->A));
+    if (BDS3_eph_flg==0) outnavf(fp, sqrt(eph->A));
+    else outnavf(fp, eph->deltaA);
     fprintf(fp,"\n%s",sep  );
     
     outnavf(fp,eph->toes   );
@@ -2520,7 +2525,9 @@ extern int outrnxnavb(FILE *fp, const rnxopt_t *opt, const eph_t *eph)
     outnavf(fp,eph->code   );
     outnavf(fp,eph->week   ); /* GPS/QZS: GPS week, GAL: GAL week, BDS: BDT week */
     if (sys==SYS_GPS||sys==SYS_QZS) {
-        outnavf(fp,eph->flag);
+        outnavf(fp, eph->flag);
+    } else if (BDS3_eph_flg==1) {
+        outnavf(fp, eph->Adot);
     }
     else {
         outnavf(fp,0.0); /* spare */
@@ -2534,15 +2541,20 @@ extern int outrnxnavb(FILE *fp, const rnxopt_t *opt, const eph_t *eph)
         outnavf(fp,uravalue(eph->sva));
     }
     outnavf(fp,eph->svh    );
-    outnavf(fp,eph->tgd[0] ); /* GPS/QZS:TGD, GAL:BGD E5a/E1, BDS: TGD1 B1/B3 */
-    if (sys==SYS_GAL||sys==SYS_CMP) {
-        outnavf(fp,eph->tgd[1]); /* GAL:BGD E5b/E1, BDS: TGD2 B2/B3 */
-    }
-    else if (sys==SYS_GPS||sys==SYS_QZS) {
-        outnavf(fp,eph->iodc);   /* GPS/QZS:IODC */
-    }
-    else {
-        outnavf(fp,0.0); /* spare */
+    if (BDS3_eph_flg==0) {
+        outnavf(fp,eph->tgd[0]); /* GPS/QZS:TGD, GAL:BGD E5a/E1, BDS: TGD1 B1/B3 */
+        if (sys==SYS_GAL||sys ==SYS_CMP) {
+            outnavf(fp, eph->tgd[1]); /* GAL:BGD E5b/E1, BDS: TGD2 B2/B3 */
+        }
+        else if (sys ==SYS_GPS||sys==SYS_QZS) {
+            outnavf(fp, eph->iodc);   /* GPS/QZS:IODC */
+        }
+        else {
+            outnavf(fp, 0.0); /* spare */
+        }
+    } else {
+        outnavf(fp, eph->tgd[2]); /* TGD B1Cp */
+        outnavf(fp, eph->tgd[3]); /* TGD B2ap */
     }
     fprintf(fp,"\n%s",sep  );
     
@@ -2565,6 +2577,13 @@ extern int outrnxnavb(FILE *fp, const rnxopt_t *opt, const eph_t *eph)
     }
     else {
         outnavf(fp,0.0); /* spare */
+    }
+    if (BDS3_eph_flg==0) {
+        outnavf(fp, 0.0); /* spare */
+        outnavf(fp, 0.0); /* spare */
+    } else {
+        outnavf(fp, eph->ndot); /* spare */
+        outnavf(fp, eph->tgd[5]); /* spare */
     }
     return fprintf(fp,"\n")!=EOF;
 }

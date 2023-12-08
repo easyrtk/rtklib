@@ -11,9 +11,9 @@ typedef int32_t             INT;
 typedef uint32_t            UINT;
 typedef int32_t             LONG;
 typedef uint32_t            ULONG;
-typedef uint64_t            LONG64;
+typedef int64_t             LONG64;
 typedef uint64_t            ULONG64;
-
+typedef uint64_t            DWORD64;
 #ifndef FALSE
 #define FALSE               0
 #endif
@@ -63,7 +63,7 @@ typedef uint64_t            ULONG64;
 
 const int32_t const_WeekBDS3ToGps = 1356;
 const int32_t const_BDS13BitWeekRollover = 0x2000;
-const int32_t lGPSSecMinusBeidouSec = 14;  // leap secon
+const int32_t lGPSSecMinusBeidouSec = 14;  /* leap secon */
 
 const double dTwoPwrM8 = 3.90625E-3;
 const double dTwoPwrM9 = 1.953125E-3;
@@ -133,15 +133,15 @@ const double dTwoPwrM66 = 1.3552527156068805E-20;
 
 #define  GPS_MAX_NO     32
 #define  GLO_MAX_NO     24
-//#define  CMP_MAX_NO     37
+/*#define  CMP_MAX_NO     37 */
 #define  CMP_MAX_NO     63
-#define  SBS_MAX_NO     44   /* ��24��Ϊ44: 120~158,183~187 */
+#define  SBS_MAX_NO     44   /* 120~158,183~187 */
 #define  QZS_MAX_NO     20
-#define  GAL_MAX_NO     36   //��20��Ϊ30
+#define  GAL_MAX_NO     36
 #define  IMES_MAX_NO    1
-#define  NAVIC_MAX_NO   9/*8*/   //[2020/03/27]
+#define  NAVIC_MAX_NO   9/*8*/   /*[2020/03/27]*/
 #define  SATE_TOTAL_NO  (GPS_MAX_NO+GLO_MAX_NO+CMP_MAX_NO+SBS_MAX_NO+QZS_MAX_NO+GAL_MAX_NO+IMES_MAX_NO+NAVIC_MAX_NO+1)
-//#define  NFREQ          5
+/*#define  NFREQ          5 */
 
 #define GPS_SYSTEM      0
 #define GLO_SYSTEM    (GPS_SYSTEM+GPS_MAX_NO)
@@ -182,7 +182,7 @@ const double dTwoPwrM66 = 1.3552527156068805E-20;
 #define GPS_L2_MIN  9
 #define GPS_L2_MAX  18
 #define GPS_L5_MIN  19
-#define GPS_L5_MAX  21  /* �������ȼ��������º������� */
+#define GPS_L5_MAX  21
 
 #define GLO_C1P 0
 #define GLO_C1C 1  /* priority:PC */
@@ -236,7 +236,7 @@ const double dTwoPwrM66 = 1.3552527156068805E-20;
 #define CMP_C8X 23
 #define CMP_SIGNAL_TOTAL 24
 
-#define CMP_B1_MIN  0    //304��ʽ
+#define CMP_B1_MIN  0
 #define CMP_B1_MAX  2
 #define CMP_B1C_MIN 16
 #define CMP_B1C_MAX 20
@@ -310,7 +310,7 @@ const double dTwoPwrM66 = 1.3552527156068805E-20;
 #define QZS_C6Z 19
 #define QZS_SIGNAL_TOTAL 20
 
-#define QZS_L1_MIN 0   //304��ʽ
+#define QZS_L1_MIN 0
 #define QZS_L1_MAX 4
 #define QZS_L2_MIN 5
 #define QZS_L2_MAX 8
@@ -319,7 +319,7 @@ const double dTwoPwrM66 = 1.3552527156068805E-20;
 #define QZS_L6_MIN 15
 #define QZS_L6_MAX 19
 
-#define IRN_C5C 0  //304��ʽ
+#define IRN_C5C 0
 #define IRN_C5A 1
 #define IRN_C5B 2
 #define IRN_C5X 3
@@ -329,20 +329,19 @@ const double dTwoPwrM66 = 1.3552527156068805E-20;
 #define IRN_C9X 7
 #define IRN_SIGNAL_TOTAL 8
 
-#define IRN_L5_MIN 0 //304��ʽ
+#define IRN_L5_MIN 0
 #define IRN_L5_MAX 3
 #define IRN_S_MIN  4
 #define IRN_S_MAX  7
 
-/* glonass Ԥ��Ƶ��ͨ�� */
+/* glonass */
 static signed char g_acFreqChan[GLO_MAX_NO + 1] = { 100, 1, -4, 5, 6, 1, -4, 5, 6, -2, -7,
 	0, -1, -2, -7, 0, -1, 4, -3, 3, 2, 4, -3, 3, 2
-}; //5��6��������1��-4����-7��1��
+};
 
 #define LIGHT_SPEED 2.99792458E8
 
 typedef struct
-//struct GPSTime
 {
 	int year;
 	int month;
@@ -353,86 +352,6 @@ typedef struct
 
 	int week;
 	double GPSSec;
-
-    /*
-	GPSTime(int sweek = 0, double gpsec = 0)
-	{
-		year = month = day = hour = min = 0;
-		second = 0;
-
-		//[2018/8/21 Amanda]
-		week = sweek;
-		gpsec = GPSSec;
-	}
-
-	void init()
-	{
-		year = month = day = hour = min = week = 0;
-		second = GPSSec = 0;
-	}
-
-	friend double operator-(GPSTime A, GPSTime B)
-	{
-		double dResult = 0;
-
-		dResult = (A.week - B.week) * 604800 + (A.GPSSec - B.GPSSec);
-
-		return dResult;
-	}
-
-	friend GPSTime operator+(GPSTime A, double sec)
-	{
-		GPSTime Result = A;
-
-		Result.GPSSec += sec;
-		if (Result.GPSSec >= 604800)
-		{
-			Result.GPSSec -= 604800;
-			++Result.week;
-		}
-		else if (Result.GPSSec < 0)
-		{
-			Result.GPSSec += 604800;
-			--Result.week;
-		}
-
-		return Result;
-	}
-
-	friend GPSTime operator-(GPSTime A, double sec)
-	{
-		GPSTime Result = A;
-
-		Result.GPSSec -= sec;
-		if (Result.GPSSec >= 604800)
-		{
-			Result.GPSSec -= 604800;
-			++Result.week;
-		}
-		else if (Result.GPSSec < 0)
-		{
-			Result.GPSSec += 604800;
-			--Result.week;
-		}
-
-		return Result;
-	}
-
-	BOOL IsTimeValid() const
-	{
-		if (year > 1980 && year < 2080)
-		{
-			return TRUE;
-		}
-		else if (week > 0)
-		{
-			return TRUE;
-		}
-
-		return FALSE;
-	}
-    */
-
 } GPSTime;
 
 static double GPSTime_diff(GPSTime A, GPSTime B)
@@ -451,19 +370,30 @@ enum ephstruc {
 	eEPH_TYPE_UNKNOWN = 0
 };
 
-enum eGalEphSource
+enum eBDS3EphSource
 {
-	eGALILEO_SRC_E1B = 0x1,        // Bit 0 set: I/NAV E1-B
-	eGALILEO_SRC_E5A = 0x2,        // Bit 1 set: F/NAV E5a-I
-	eGALILEO_SRC_E5B = 0x4,        // Bit 2 set: I/NAV E5b-I
-	eGALILEO_CLK_E1_E5A = 0x100,    // Bit 8 set: af0-af2, Toc, SISA are for F/NAV : E5a,E1
-	eGALILEO_CLK_E1_E5B = 0x200     // Bit 9 set: af0-af2, Toc, SISA are for I/NAV : E5b,E1
+    eBDS_SRC_B1C = 0x1,        /* Bit 0 set: B1C      */
+    eBDS_SRC_B2a = 0x4,        /* Bit 2 set: B2a      */
+    eBDS_SRC_B2b = 0x8,        /* Bit 3 set: B2a      */
+    eBDS_SRC_B1I = 0x10,       /* Bit 4 set: B1I      */
+    eBDS_SAT_GEO = 0x40,       /* Bit 6-7 set 01: GEO */
+    eBDS_SAT_IGSO= 0x80,       /* Bit 6-7 set 10: IGSO*/
+    eBDS_SAT_MEO = 0xC0,       /* Bit 6-7 set 11: MEO */
 };
 
-// See GALILEO OS SIS ICD
-// DVS : 0 -- valid; 1 -- working without guarantee
-// HS : 0 -- Signal OK; 1 -- Signal out of service, 2 -- Signal will be out of service, 
-//      3 -- Signal Component currently in Test
+enum eGalEphSource
+{
+	eGALILEO_SRC_E1B = 0x1,        /* Bit 0 set: I/NAV E1-B  */
+	eGALILEO_SRC_E5A = 0x2,        /* Bit 1 set: F/NAV E5a-I */
+	eGALILEO_SRC_E5B = 0x4,        /* Bit 2 set: I/NAV E5b-I */
+	eGALILEO_CLK_E1_E5A = 0x100,   /* Bit 8 set: af0-af2, Toc, SISA are for F/NAV : E5a,E1 */
+	eGALILEO_CLK_E1_E5B = 0x200    /* Bit 9 set: af0-af2, Toc, SISA are for I/NAV : E5b,E1 */
+};
+
+/* See GALILEO OS SIS ICD *
+/* DVS : 0 -- valid; 1 -- working without guarantee */
+/* HS : 0 -- Signal OK; 1 -- Signal out of service, 2 -- Signal will be out of service,  */
+/*      3 -- Signal Component currently in Test */
 enum eGalEphHealth
 {
 	eGALILEO_HEALTH_E1B_DV = 0x1,           // bit0
@@ -639,28 +569,16 @@ typedef struct// Hemis_MeasBlock
 	double  dSNR;
 	double  dDop;
 	double  dTrackTime;
-	BOOL    bTrackTimeFlag;
-	BYTE    nCycleSlip;
-	BYTE    nSlipWarn;
+	int    bTrackTimeFlag;
+	uint8_t    nCycleSlip;
+    uint8_t    nSlipWarn;
 	int     nLLI;
-	BYTE    nSignalType;
+    uint8_t    nSignalType;
 
-	BOOL    bPhaseValid;
+	int    bPhaseValid;
 
-	UINT    nPhase;  //23bit��λ
-	ULONG64 nPsr;    //35bitα��
-    /*
-	Hemis_MeasBlock()
-	{
-		nLLI = nCycleSlip = 0;
-		dPsr = dPhase = dDop = dSNR = dTrackTime = 0.0;
-		bPhaseValid = bTrackTimeFlag = FALSE;
-		nSlipWarn = 0;
-		nPhase = 0;
-		nPsr = 0;
-		nSignalType = 0;
-	}
-    */
+	uint32_t nPhase;  //23bit
+	ULONG64  nPsr;    //35bit
 } Hemis_MeasBlock;
 
 typedef struct
@@ -772,7 +690,8 @@ static LONG64 getSignData(ULONG64 data, int bitNum, int twoComplement)
 		}
 
 		ULONG64 Mask = 0;
-		for (int i = 0; i < (bitNum - 1); ++i)
+		int i=0;
+		for (i = 0; i < (bitNum - 1); ++i)
 		{
 			Mask |= (0x1 << i);
 		}
@@ -869,13 +788,13 @@ static int UnifySignalType(int nSystem, BYTE bPcode, int *nSignalType, int *code
 		}
 		else if (*nSignalType == 2)
 		{
-			*nSignalType = GPS_C2S;  /* ����L2�۲�����?? *///��GPS_C2C�޸�ΪGPS_C2X�޸�[2019/09/04]
+			*nSignalType = GPS_C2S; 
 			nFreq = 2;
 			*codeType = 16;
 		}
 		else if (*nSignalType == 3)
 		{
-			*nSignalType = GPS_C5Q;//��GPS_C5I�޸�ΪGPS_C5Q [2019/09/04]
+			*nSignalType = GPS_C5Q;
 			nFreq = 3;
 			*codeType = 25;
 		}
@@ -1003,29 +922,29 @@ static int UnifySignalType(int nSystem, BYTE bPcode, int *nSignalType, int *code
 
 		if (*nSignalType == 0)
 		{
-            *nSignalType = GAL_C1X;//��GAL_C1C�޸�ΪGAL_C1X [2019/10/15]
+            *nSignalType = GAL_C1X;
 			nFreq = 0;
             *codeType = 12;
 		}
 		else if (*nSignalType == 1)
 		{
-            *nSignalType = GAL_C5X;//��GAL_C5Q��ΪGAL_C5X [2019/10/15]
+            *nSignalType = GAL_C5X;
 			nFreq = 1;
             *codeType = 26;
 		}
 		else if (*nSignalType == 2)
 		{
-            *nSignalType = GAL_C7X;//��GAL_C7Q��ΪGAL_C7X [2019/10/15]
+            *nSignalType = GAL_C7X;
 			nFreq = 2;
             *codeType = 29;
 		}
-		else if (*nSignalType == 3)//����[2019/05/30]
+		else if (*nSignalType == 3)
 		{
             *nSignalType = GAL_C6C;
 			nFreq = 3;
             *codeType = 60;
 		}
-		else if (*nSignalType == 4)//����[2019/05/30]
+		else if (*nSignalType == 4)
 		{
             *nSignalType = GAL_C8Q;
 			nFreq = 4;
@@ -1044,13 +963,13 @@ static int UnifySignalType(int nSystem, BYTE bPcode, int *nSignalType, int *code
 		}
 		else if (*nSignalType == 2)
 		{
-            *nSignalType = QZS_C2X; /* L2C *///��QZS_C2S��ΪQZS_C2X [2019/09/04]
+            *nSignalType = QZS_C2X; /* L2C */
 			nFreq = 1;
             *codeType = 18;
 		}
 		else if (*nSignalType == 3)
 		{
-            *nSignalType = QZS_C5Q; /* L5 *///��QZS_C5Iת��ΪQZS_C5Q[2019/09/04] 
+            *nSignalType = QZS_C5Q; /* L5 */
 			nFreq = 2;
             *codeType = 25;
 		}
@@ -1116,7 +1035,7 @@ static double GetWaveLength(int iSystem, int iSignalType, int iFreq /* = Invalid
 		{
 			dWaveLen = LIGHT_SPEED / (1246000000 + 437500.0*iFreq);
 		}
-		else if (iSignalType >= GLO_G1a_MIN && iSignalType <= GLO_G1a_MAX)  //304��ʽ
+		else if (iSignalType >= GLO_G1a_MIN && iSignalType <= GLO_G1a_MAX)
 		{
 			dWaveLen = LIGHT_SPEED / 1600995000.0;
 		}
@@ -1210,7 +1129,7 @@ static double GetWaveLength(int iSystem, int iSignalType, int iFreq /* = Invalid
 			dWaveLen = LIGHT_SPEED / 1278750000.0;
 		}
 	}
-	else if (iSystem == NAVIC_SYSTEM)//304��ʽ[2020/03/27]
+	else if (iSystem == NAVIC_SYSTEM)
 	{
 		if (iSignalType >= IRN_L5_MIN && iSignalType <= IRN_L5_MAX)
 		{
@@ -1230,11 +1149,11 @@ void GetObsValue(int nSystem, SObsPacket item, int nSignal, Hemis_MeasBlock *Obs
 	int nSNR = item.CS_TT_W3_SNR & 0xFFF;
 	if (nSNR > 0)
 	{
-		// ֻ��gps-L2����ȼ��㲻ͬ [2018/10/25 Amanda]
+		// GPS-L2 [2018/10/25 Amanda]
 		if (nSignal == GPS_C2P && nSystem == GPS_SYSTEM)
 		{
-			//Obs.dSNR = 10.0*log10(nSNR*0.1024*1000) - 6.0;  // ��L2C��6dB [2020/5/7 Amanda]
-			Obs->dSNR = 10.0*log10(nSNR*0.1164 * 1000);  // ��L2C��6dB [2020/5/7 Amanda]
+			//Obs.dSNR = 10.0*log10(nSNR*0.1024*1000) - 6.0;
+			Obs->dSNR = 10.0*log10(nSNR*0.1164 * 1000); 
 		}
 		else
 		{
@@ -1243,10 +1162,10 @@ void GetObsValue(int nSystem, SObsPacket item, int nSignal, Hemis_MeasBlock *Obs
 	}
 	else
 	{
-		Obs->dSNR = 0.0;  //���������Ķ�����������0,����������
+		Obs->dSNR = 0.0;
 	}
 
-	Obs->nSlipWarn = item.CS_TT_W3_SNR >> 12 & 0x7; //bit12-14��warn for potential half cycle
+	Obs->nSlipWarn = item.CS_TT_W3_SNR >> 12 & 0x7; //bit12-14 warn for potential half cycle
 	Obs->bTrackTimeFlag = item.CS_TT_W3_SNR >> 15 & 0x1; //bit15,1 set track time is bigger than 25.5s
 	int temp = item.CS_TT_W3_SNR >> 16 & 0xff;
 	Obs->dTrackTime = (item.CS_TT_W3_SNR >> 16 & 0xff)*0.1;  //bit16-23
@@ -1254,7 +1173,7 @@ void GetObsValue(int nSystem, SObsPacket item, int nSignal, Hemis_MeasBlock *Obs
 
 	Obs->bPhaseValid = item.P7_Doppler_FL & 0x1; //bit1
 	Obs->dDop = (item.P7_Doppler_FL >> 1 & 0x7fffff) / 512.0; //bit1-23
-	if (!(item.P7_Doppler_FL >> 24 & 0x1)) //bit24:1Ϊ����0Ϊ�����Ƿ�֮��
+	if (!(item.P7_Doppler_FL >> 24 & 0x1)) //bit24
 	{
 		Obs->dDop = Obs->dDop*(-1.0);
 	}
@@ -1291,8 +1210,6 @@ Hemis_MeasBlock GetBlockData(const Hemis_MeasBlock *block, int Id, int nSignalTy
 		BData.nLLI |= 0x1;
 	}
 
-
-	//�޸ģ�����λ��Чʱ�����ð�������ʶ
 	if (!block->bPhaseValid)
 	{
 		BData.nLLI |= 0x1;
@@ -1301,7 +1218,6 @@ Hemis_MeasBlock GetBlockData(const Hemis_MeasBlock *block, int Id, int nSignalTy
 	return BData;
 }
 
-/* �ο���λ�ṩ��λ��������λ��23λ����Ϻ������λ��ο���λ��ֵ������4196 */
 double AdjustPhase(double dFinePhase, double dTotalPhase)
 {
 	double dResult = 0, dNewPhase;
@@ -1310,10 +1226,8 @@ double AdjustPhase(double dFinePhase, double dTotalPhase)
 	UINT nLower23 = ((UINT)(dFinePhase * 1024)) & 0x7fffff;
 
 	nTem = (nTem & 0xffffffffff800000) | (nLower23);
-	dNewPhase = nTem / 1024.0;  //�޸���λ[2014/12/31 GaoWei]
+	dNewPhase = nTem / 1024.0;  
 
-
-	////���������λ�Ͳο���λ�Ĳ�ֵ��ʹ֮С��4096���������ֵ��Ϊʵ����λ
 	if (fabs(dNewPhase - dTotalPhase) < 4096)
 	{
 		dResult = dNewPhase;
@@ -1324,7 +1238,7 @@ double AdjustPhase(double dFinePhase, double dTotalPhase)
 		int N = 0;
 		if (dDiff < 0)
 		{
-			N = (int)(dDiff / 8192 - 0.5); //�������������
+			N = (int)(dDiff / 8192 - 0.5); 
 		}
 		else
 		{
@@ -1380,8 +1294,11 @@ int SatExistOrNot(int nSystem,int svId, obs_t *obs)
 	return i;
 }
 
-extern int readGnssObs(unsigned char* buff, int nStart, obs_t *obs)
+extern int readGnssObs(raw_t *raw)//unsigned char* buff, int nStart, obs_t *obs
 {
+	unsigned char *buff=raw->buff;
+	obs_t *obs = &raw->obs;
+    int nStart = 8;
 	if (buff == NULL || nStart < 0)
 	{
 		return 0;
@@ -1425,8 +1342,8 @@ extern int readGnssObs(unsigned char* buff, int nStart, obs_t *obs)
 	nStart += CHANNELS_gen * 4;
 	memcpy(item.m_awChanSignalSYS, buff + nStart, CHANNELS_gen * 2);
 	nStart += CHANNELS_gen * 2;
-
-	for (int i = 0; i < CHANNELS_gen; i++)
+	int i=0;
+	for (i = 0; i < CHANNELS_gen; i++)
 	{
 		BYTE nSVID = item.m_aulCodeMSBsPRN[i] & 0xFF;
 		BYTE nSystem = item.m_awChanSignalSYS[i] & 0xF;
@@ -1493,31 +1410,31 @@ extern int readGnssObs(unsigned char* buff, int nStart, obs_t *obs)
 			continue;
 		}
 
-		double dRoughPsr = (item.m_aulCodeMSBsPRN[i] >> 13 & 0x7FFFF)*256.0; /* α���19λ */
+		double dRoughPsr = (item.m_aulCodeMSBsPRN[i] >> 13 & 0x7FFFF)*256.0;
 		if (fabs(dRoughPsr) < 1E-6)
 		{
 			continue;
 		}
 
-		int nSignalType = item.m_awChanSignalSYS[i] >> 4 & 0xF;    /* ԭʼ�ź�id */
-		BYTE bPcode = item.m_awChanSignalSYS[i] >> 13 & 0x1;  /* glonass�Ƿ�Ϊp�� */
+		int nSignalType = item.m_awChanSignalSYS[i] >> 4 & 0xF;   
+		BYTE bPcode = item.m_awChanSignalSYS[i] >> 13 & 0x1;
 
 		int codeType = 0;
-		int nL = UnifySignalType(nSystem, bPcode, &nSignalType, &codeType);      /* ת��Ϊͳһ���ź�id */
+		int nL = UnifySignalType(nSystem, bPcode, &nSignalType, &codeType);     
 
 		if (nSignalType < 0 || codeType <= 0 || nL >=(NFREQ+NEXOBS)) //[2021/08/11]
 		{
 			continue;
 		}
 
-		SHORT nFreq = item.m_awChanSignalSYS[i] >> 8 & 0x1F - 7;	   /* glonass����Ƶ�� */
+		SHORT nFreq = item.m_awChanSignalSYS[i] >> 8 & 0x1F - 7;
 		if (nSystem == GLO_SYSTEM && nSVID <= GLO_MAX_NO)
 		//if (nSystem == SYS_GLO && nSVID <= GLO_MAX_NO)
 		{
 			nFreq = g_acFreqChan[nSVID];
 		}
 
-		double lam = GetWaveLength(nSystem, nSignalType, nFreq);     /* ���ǲ��� */
+		double lam = GetWaveLength(nSystem, nSignalType, nFreq);    
 
 		if (fabs(lam) < 1E-6)
 		{
@@ -1545,27 +1462,27 @@ extern int readGnssObs(unsigned char* buff, int nStart, obs_t *obs)
 				//obs->data[nIndex].nFreChan = nFreq;
 			}
 			
-			obs->data[Index].sat = satno(sys, nSVID);//nSVID;
+            obs->data[Index].sat = satno(sys, nSVID);//nSVID;
 			//obs->data[nIndex].system = nSystem;
 
 			if (obs->data[Index].P[nL] == 0.0)
 			{
-				obs->data[Index].P[nL] = block.dPsr;
+                obs->data[Index].P[nL] = block.dPsr;
 			}
 
 			if (obs->data[Index].L[nL] == 0.0)
 			{
 				//obs->data[Index].lam[nL] = lam;
-				obs->data[Index].L[nL] = block.dPhase;
-				obs->data[Index].LLI[nL] = block.nLLI;
-				obs->data[Index].D[nL] = block.dDop;
+                obs->data[Index].L[nL] = block.dPhase;
+                obs->data[Index].LLI[nL] = block.nLLI;
+                obs->data[Index].D[nL] = block.dDop;
 			}
 
 			if (obs->data[Index].SNR[nL] == 0.0)
 			{
-				obs->data[Index].SNR[nL] = (uint16_t)(block.dSNR / SNR_UNIT + 0.5);
+                obs->data[Index].SNR[nL] = (uint16_t)(block.dSNR / SNR_UNIT + 0.5);
 			}
-			obs->data[Index].code[nL] = codeType;
+            obs->data[Index].code[nL] = codeType;
 			obs->data[Index].time = gpst2time(item.m_wWeek, item.m_dTow);
 			++obs->n;
 		}
@@ -1577,28 +1494,30 @@ extern int readGnssObs(unsigned char* buff, int nStart, obs_t *obs)
 			//}
 			if (obs->data[Index].P[nL] == 0.0)
 			{
-				obs->data[Index].P[nL] = block.dPsr;
+                obs->data[Index].P[nL] = block.dPsr;
 			}
 
 			if (obs->data[Index].L[nL] == 0.0)
 			{
 				//obs->data[Index].lam[nL] = lam;
-				obs->data[Index].L[nL] = block.dPhase;
-				obs->data[Index].LLI[nL] = block.nLLI;
-				obs->data[Index].D[nL] = block.dDop;
+                obs->data[Index].L[nL] = block.dPhase;
+                obs->data[Index].LLI[nL] = block.nLLI;
+                obs->data[Index].D[nL] = block.dDop;
 			}
 			if (obs->data[Index].SNR[nL] == 0.0)
 			{
-				obs->data[Index].SNR[nL] = (uint16_t)(block.dSNR / SNR_UNIT + 0.5);
+                obs->data[Index].SNR[nL] = (uint16_t)(block.dSNR / SNR_UNIT + 0.5);
 			}
-			obs->data[Index].code[nL] = codeType;
-			obs->data[Index].time = gpst2time(item.m_wWeek, item.m_dTow);
+            obs->data[Index].code[nL] = codeType;
+            obs->data[Index].time = gpst2time(item.m_wWeek, item.m_dTow);
 		}
 		
 		//printf("%14.3f %14.3f %14.3f %14.3f\r\n",block.dPsr, block.dPhase,block.dDop,block.dSNR );
 	}
 
-	return iPagesTotal > 0 && (iPagesTotal - 1) == iPageNumber;
+    raw->time = gpst2time(item.m_wWeek, item.m_dTow);
+    
+    return iPagesTotal > 0 && (iPagesTotal - 1) == iPageNumber;
 }
 
 static int readGpsEph(unsigned char* buff, int nStart, nav_t *nav)
@@ -1726,8 +1645,10 @@ static int readGpsEph(unsigned char* buff, int nStart, nav_t *nav)
 	return 2;
 }
 
-static int readCmpEph(unsigned char* buff, int nStart, nav_t *nav)
+extern int readBDS2Eph(raw_t *raw)//unsigned char* buff, int nStart, nav_t *nav
 {
+	uint8_t *buff = raw->buff;
+	int nStart=0;
 	if (buff == NULL)
 	{
 		return 0;
@@ -1736,176 +1657,480 @@ static int readCmpEph(unsigned char* buff, int nStart, nav_t *nav)
 	nStart = 8;
 
 	eph_t eph;
-	memcpy(&eph.sat, buff + nStart, 2);
+    unsigned short prn = 0;
+    int sat = 0;
+	memcpy(&prn, buff + nStart, 2);
+    sat = satno(SYS_CMP, prn);
+    eph.sat = sat;
 	nStart += 2;
 
 	nStart += 2;
-	nStart += 6;
-	double tow = 0.0;
-	memcpy(&tow, buff + nStart, sizeof(tow));
-	nStart += 4;
-	uint32_t toc = 0.0;
-	memcpy(&toc, buff + nStart, sizeof(toc));
-	eph.toc.time = toc * 8;
+    uint32_t ttr = 0;
+    memcpy(&ttr, raw->buff + nStart, sizeof(ttr));
 	nStart += 4;
 
-	memcpy(&eph.f0, buff + nStart, sizeof(eph.f0));
-	eph.f0 *= pow(2.0, -31 - 2);
+    uint32_t tow = 0;
+	memcpy(&tow, raw->buff + nStart, sizeof(tow));
 	nStart += 4;
 
-	memcpy(&eph.f1, buff + nStart, sizeof(eph.f1));
-	eph.f1 *= pow(2.0, -43 - 7);
+	uint32_t toc = 0;
+	memcpy(&toc, raw->buff + nStart, sizeof(toc));
+	//eph.toc.time = toc * 8;
 	nStart += 4;
 
-	memcpy(&eph.f2, buff + nStart, sizeof(eph.f2));
-	eph.f2 *= pow(2.0, -55);
+    int32_t f0 = 0;
+	memcpy(&f0, raw->buff + nStart, sizeof(f0));
+	eph.f0 = f0 * pow(2.0, -31 - 2);
 	nStart += 4;
 
-	uint32_t toe = 0.0;
-	memcpy(&toe, buff + nStart, sizeof(toe));
-	eph.toe.time = toe * 8;
+    int32_t f1 = 0;
+	memcpy(&f1, raw->buff + nStart, sizeof(f1));
+	eph.f1 = f1 * pow(2.0, -43 - 7);
 	nStart += 4;
 
-	memcpy(&eph.A, buff + nStart, sizeof(eph.A));
-	eph.A = eph.A * pow(2.0, -19);
+    int32_t f2 = 0;
+	memcpy(&f2, raw->buff + nStart, sizeof(f2));
+	eph.f2 = f2 * pow(2.0, -55);
 	nStart += 4;
 
-	memcpy(&eph.e, buff + nStart, sizeof(eph.e));
-	eph.e = eph.e * pow(2.0, -33);
+	uint32_t toe = 0;
+	memcpy(&toe, raw->buff + nStart, sizeof(toe));
+	//eph.toe.time = toe * 8;
 	nStart += 4;
 
-	memcpy(&eph.omg, buff + nStart, sizeof(eph.omg));
-	eph.omg = eph.omg *pow(2.0, -31)*PI;
+    uint32_t A = 0;
+	memcpy(&A, raw->buff + nStart, sizeof(A));
+	eph.A = pow(A * pow(2.0, -19), 2.0);
 	nStart += 4;
 
-	memcpy(&eph.deln, buff + nStart, sizeof(eph.deln));
-	eph.deln = eph.deln *pow(2.0, -43)*PI;
+    uint32_t e = 0;
+	memcpy(&e, raw->buff + nStart, sizeof(e));
+	eph.e = e * pow(2.0, -33);
 	nStart += 4;
 
-	memcpy(&eph.M0, buff + nStart, sizeof(eph.M0));
-	eph.M0 = eph.M0 *pow(2.0, -31)*PI;
+    int32_t omg = 0;
+	memcpy(&omg, raw->buff + nStart, sizeof(omg));
+	eph.omg = omg * pow(2.0, -31)*PI;
 	nStart += 4;
 
-	memcpy(&eph.OMG0, buff + nStart, sizeof(eph.OMG0));
-	eph.OMG0 = eph.OMG0 *pow(2.0, -31)*PI;
+    int32_t deln = 0;
+	memcpy(&deln, raw->buff + nStart, sizeof(deln));
+	eph.deln = deln * pow(2.0, -43)*PI;
 	nStart += 4;
 
-	memcpy(&eph.OMGd, buff + nStart, sizeof(eph.OMGd));
-	eph.OMGd = eph.OMGd *pow(2.0, -43)*PI;
+    int32_t M0 = 0;
+	memcpy(&M0, raw->buff + nStart, sizeof(M0));
+	eph.M0 = M0 * pow(2.0, -31)*PI;
 	nStart += 4;
 
-	memcpy(&eph.i0, buff + nStart, sizeof(eph.i0));
-	eph.i0 = eph.i0 *pow(2.0, -31)*PI;
+    int32_t OMG0 = 0;
+	memcpy(&OMG0, raw->buff + nStart, sizeof(OMG0));
+	eph.OMG0 = OMG0 * pow(2.0, -31)*PI;
 	nStart += 4;
 
-	memcpy(&eph.idot, buff + nStart, sizeof(eph.idot));
-	eph.idot = eph.idot *pow(2.0, -43)*PI;
+    int32_t OMGd = 0;
+	memcpy(&OMGd, raw->buff + nStart, sizeof(OMGd));
+	eph.OMGd = OMGd * pow(2.0, -43)*PI;
 	nStart += 4;
 
-	memcpy(&eph.cuc, buff + nStart, sizeof(eph.cuc));
-	eph.cuc = eph.cuc *pow(2.0, -29 - 2);
+    int32_t i0 = 0;
+	memcpy(&i0, raw->buff + nStart, sizeof(i0));
+	eph.i0 = i0 * pow(2.0, -31)*PI;
 	nStart += 4;
 
-	memcpy(&eph.cus, buff + nStart, sizeof(eph.cus));
-	eph.cus = eph.cus *pow(2.0, -29 - 2);
+    int32_t idot = 0;
+	memcpy(&idot, raw->buff + nStart, sizeof(idot));
+	eph.idot = idot * pow(2.0, -43)*PI;
 	nStart += 4;
 
-	memcpy(&eph.crc, buff + nStart, sizeof(eph.crc));
-	eph.crc = eph.crc *pow(2.0, -6);
+    int32_t cuc = 0;
+	memcpy(&cuc, raw->buff + nStart, sizeof(cuc));
+	eph.cuc = cuc * pow(2.0, -29 - 2);
 	nStart += 4;
 
-	memcpy(&eph.crs, buff + nStart, sizeof(eph.crs));
-	eph.crs = eph.crs *pow(2.0, -5 - 1);
+    int32_t cus = 0;
+	memcpy(&cus, raw->buff + nStart, sizeof(cus));
+	eph.cus = cus * pow(2.0, -29 - 2);
 	nStart += 4;
 
-	memcpy(&eph.cic, buff + nStart, sizeof(eph.cic));
-	eph.cic = eph.cic *pow(2.0, -29 - 2);
+    int32_t crc = 0;
+	memcpy(&crc, raw->buff + nStart, sizeof(crc));
+	eph.crc = crc * pow(2.0, -6);
 	nStart += 4;
 
-	memcpy(&eph.cis, buff + nStart, sizeof(eph.cis));
-	eph.cis = eph.cis *pow(2.0, -29 - 2);
+    int32_t crs = 0;
+	memcpy(&crs, raw->buff + nStart, sizeof(crs));
+	eph.crs = crs * pow(2.0, -5 - 1);
 	nStart += 4;
 
-	ULONG nTem = 0;
-	memcpy(&nTem, buff + nStart, sizeof(nTem));
+    int32_t cic = 0;
+	memcpy(&cic, raw->buff + nStart, sizeof(cic));
+	eph.cic = cic * pow(2.0, -29 - 2);
 	nStart += 4;
 
-	SHORT nData = nTem & 0x3ff;
-	nData = ((SHORT)(nData << 6)) >> 6;
-	eph.tgd[1] = nData * pow(10.0, -10);
+    int32_t cis = 0;
+	memcpy(&cis, raw->buff + nStart, sizeof(cis));
+	eph.cis = cis * pow(2.0, -29 - 2);
+	nStart += 4;
+
+	uint32_t nTem = 0;
+	memcpy(&nTem, raw->buff + nStart, sizeof(nTem));
+	nStart += 4;
+
+	int16_t nData = nTem & 0x3ff;
+	nData = ((int16_t)(nData << 6)) >> 6;
+	eph.tgd[0] = nData * pow(10.0, -10);
 
 	nData = nTem >> 10 & 0x3ff;
-	nData = ((SHORT)(nData << 6)) >> 6;
-	eph.tgd[2] = nData * pow(10.0, -10); //in unit of ns
+	nData = ((int16_t)(nData << 6)) >> 6;
+	eph.tgd[1] = nData * pow(10.0, -10); //in unit of ns
 
-	memcpy(&eph.week, buff + nStart, sizeof(eph.week));
+    uint32_t week = 0;
+	memcpy(&week, raw->buff + nStart, sizeof(week));
+    eph.week = week;
 	nStart += 4;
 
 	nStart += 8;
 
-	ULONG iTem = 0;
-	memcpy(&iTem, buff + nStart, sizeof(iTem));
+    uint32_t iTem = 0;
+	memcpy(&iTem, raw->buff + nStart, sizeof(iTem));
 	nStart += 4;
 
 	eph.iode = (uint16_t)(iTem & 0x1f);    //bit0-4
 	int nURA = (uint16_t)((iTem >> 5) & 0xf);   //bit5-8
-	eph.sva = GetURA(nURA);
+    eph.sva = nURA;// GetURA(nURA);
 	eph.iodc = (uint16_t)((iTem >> 9) & 0x1f); //bit9-13
 
 	eph.svh = iTem >> 14 & 0x1; //bit14
 
-	nStart += 16;  //4��spare
+	nStart += 16; 
 
-	addEph(nav, &eph);
+    //toe += floor(ttr / 86400) * 86400;
+    //toc += floor(ttr / 86400) * 86400;
+    eph.toes = 8*toe;
+    eph.toe = bdt2gpst(bdt2time(eph.week, 8*toe));
+    eph.toc = bdt2gpst(bdt2time(eph.week, 8*toc));
+    eph.ttr = bdt2gpst(bdt2time(eph.week, ttr));
+
+    eph.code = 0;
+
+	//addEph(nav, &eph);
+
+    raw->nav.eph[sat - 1] = eph;
+    raw->ephsat = sat;
+    raw->ephset = 0;
 
 	return 2;
 }
 
-static int readGalileoEph(unsigned char* buff, int nStart, nav_t *nav)
+extern int readBDS3Eph(raw_t *raw)//unsigned char* buff, int nStart, nav_t *nav
+{
+    static unsigned const_B1C_Source = 0;
+    static unsigned const_B2a_Source = 1;
+    static unsigned const_B2b_Source = 2;
+    static unsigned const_SAT_GEO = 1;
+    static unsigned const_SAT_IGSO = 2;
+    static unsigned const_SAT_MEO = 3;
+
+    if (raw->buff == NULL)
+    {
+        return 0;
+    }
+
+    int nStart = 8;
+
+    eph_t eph;
+    unsigned short prn = 0;
+    int sat = 0;
+    memcpy(&prn, raw->buff + nStart, 2);
+    sat = satno(SYS_CMP, prn);
+    eph.sat = sat;
+    nStart += 2;
+
+    nStart += 2;
+    uint32_t ttr = 0;
+    memcpy(&ttr, raw->buff + nStart, sizeof(ttr));
+    nStart += 4;
+
+    uint32_t nTem = 0;
+    int32_t iTem = 0;
+
+    uint32_t tow = 0;
+    uint8_t nSrc;
+    memcpy(&nTem, raw->buff + nStart, sizeof(nTem));
+    nStart += 4;
+    tow = nTem & 0xFFFFF;
+    nSrc = ((nTem >> 20) & 0x3);
+    int16_t nDataSource = 0;
+    if (nSrc == const_B1C_Source)
+    {
+        nDataSource |= eBDS_SRC_B1C;
+    }
+    else if (nSrc == const_B2a_Source)
+    {
+        nDataSource |= eBDS_SRC_B2a;
+    }
+    else if (nSrc == const_B2b_Source)
+    {
+        nDataSource |= eBDS_SRC_B2b;
+    }
+
+    uint32_t week = 0;
+    memcpy(&week, raw->buff + nStart, sizeof(week));
+    eph.week = week;
+    nStart += 4;
+
+    nTem = 0;
+    memcpy(&nTem, raw->buff + nStart, sizeof(nTem));
+    nStart += 4;
+    uint32_t uHealth = (uint32_t)((nTem >> 21) & 0x03);
+    eph.svh = uHealth;
+
+    uint32_t IODE = 0;
+    memcpy(&IODE, raw->buff + nStart, sizeof(IODE));
+    eph.iode = IODE;
+    nStart += 4;
+
+    nTem = 0;
+    uint32_t toe = 0;
+    memcpy(&nTem, raw->buff + nStart, sizeof(nTem));
+    nStart += 4;
+    toe = (nTem >> 2) * 300;
+    uint32_t uSatType = (uint32_t)(nTem & 0x3);
+    if (uSatType == const_SAT_GEO)
+    {
+        nDataSource |= eBDS_SAT_GEO;
+    }
+    else if (uSatType == const_SAT_IGSO)
+    {
+        nDataSource |= eBDS_SAT_IGSO;
+    }
+    else if (uSatType == const_SAT_MEO)
+    {
+        nDataSource |= eBDS_SAT_MEO;
+    }
+
+    int32_t deltaA = 0;
+    memcpy(&deltaA, raw->buff + nStart, sizeof(deltaA));
+    nStart += 4;
+    eph.deltaA = deltaA*pow(2.0, -9);
+
+    int32_t dotA = 0;
+    memcpy(&dotA, raw->buff + nStart, sizeof(dotA));
+    nStart += 4;
+    eph.Adot = dotA*pow(2.0, -21);
+
+    int32_t deltan = 0;
+    memcpy(&deltan, raw->buff + nStart, sizeof(deltan));
+    nStart += 4;
+    eph.deln = deltan*pow(2.0, -44)*PI;
+
+    int32_t dotn = 0;
+    memcpy(&dotn, raw->buff + nStart, sizeof(dotn));
+    nStart += 4;
+    eph.ndot = dotn*pow(2.0, -57)*PI;
+
+    nTem = 0;
+    int64_t M0 = 0;
+    memcpy(&nTem, raw->buff + nStart, sizeof(nTem));
+    nStart += 4;
+    M0 = ((DWORD64)nTem) << 32;
+
+    nTem = 0;
+    uint64_t e = 0;
+    memcpy(&nTem, raw->buff + nStart, sizeof(nTem));
+    nStart += 4;
+    e = ((DWORD64)nTem) << 32;
+
+    nTem = 0;
+    int64_t omg = 0;
+    memcpy(&nTem, raw->buff + nStart, sizeof(nTem));
+    nStart += 4;
+    omg = ((DWORD64)nTem) << 32;
+
+    nTem = 0;
+    int64_t OMG0 = 0;
+    memcpy(&nTem, raw->buff + nStart, sizeof(nTem));
+    nStart += 4;
+    OMG0 = ((DWORD64)nTem) << 32;
+
+    nTem = 0;
+    int64_t i0 = 0;
+    memcpy(&nTem, raw->buff + nStart, sizeof(nTem));
+    nStart += 4;
+    i0 = ((DWORD64)nTem) << 32;
+
+    nTem = 0;
+    int64_t Sign[5] = { 0 };
+    memcpy(&nTem, raw->buff + nStart, sizeof(nTem));
+    nStart += 4;
+    Sign[0] = ((unsigned long)(nTem >> 4) & 0x1) << 31;
+    Sign[1] = ((unsigned long)(nTem >> 3) & 0x1) << 31;
+    Sign[2] = ((unsigned long)(nTem >> 2) & 0x1) << 31;
+    Sign[3] = ((unsigned long)(nTem >> 1) & 0x1) << 31;
+    Sign[4] = ((unsigned long)(nTem >> 0) & 0x1) << 31;
+
+    eph.M0 = (double)((M0 | Sign[0]) >> 31)*pow(2.0, -32)*PI;
+    eph.e = (double)((e | Sign[1]) >> 31)*pow(2.0, -34);
+    eph.omg = (double)((omg | Sign[2]) >> 31)*pow(2.0, -32)*PI;
+    eph.OMG0 = (double)((OMG0 | Sign[3]) >> 31)*pow(2.0, -32)*PI;
+    eph.i0 = (double)((i0 | Sign[4]) >> 31)*pow(2.0, -32)*PI;
+
+    int32_t OMGd = 0;
+    memcpy(&OMGd, raw->buff + nStart, sizeof(OMGd));
+    nStart += 4;
+    eph.OMGd = OMGd*pow(2.0, -44)*PI;
+
+    int32_t idot = 0;
+    memcpy(&idot, raw->buff + nStart, sizeof(idot));
+    nStart += 4;
+    eph.idot = idot*pow(2.0, -44)*PI;
+
+    iTem = 0;
+    memcpy(&iTem, raw->buff + nStart, sizeof(iTem));
+    nStart += 4;
+    eph.cis = ((int16_t)((iTem >> 16) & 0xFFFF)) * pow(2.0, -30);
+    eph.cic = ((int16_t)(iTem & 0xFFFF)) * pow(2.0, -30);
+
+    int32_t crs = 0;
+    memcpy(&crs, raw->buff + nStart, sizeof(crs));
+    nStart += 4;
+    eph.crs = crs * pow(2.0, -8);
+
+    int32_t crc = 0;
+    memcpy(&crc, raw->buff + nStart, sizeof(crc));
+    nStart += 4;
+    eph.crc = crc * pow(2.0, -8);
+
+    int32_t cus = 0;
+    memcpy(&cus, raw->buff + nStart, sizeof(cus));
+    nStart += 4;
+    eph.cus = cus * pow(2.0, -30);
+
+    int32_t cuc = 0;
+    memcpy(&cuc, raw->buff + nStart, sizeof(cuc));
+    nStart += 4;
+    eph.cuc = cuc * pow(2.0, -30);
+
+    uint32_t IODC = 0;
+    memcpy(&IODC, raw->buff + nStart, sizeof(IODC));
+    eph.iodc = IODC;
+    nStart += 4;
+
+    int32_t f0 = 0;
+    memcpy(&f0, raw->buff + nStart, sizeof(f0));
+    nStart += 4;
+    eph.f0 = f0 * pow(2.0, -34);
+
+    int32_t f1 = 0;
+    memcpy(&f1, raw->buff + nStart, sizeof(f1));
+    nStart += 4;
+    eph.f1 = f1 * pow(2.0, -50);
+
+    iTem = 0;
+    int32_t f2 = 0;
+    memcpy(&iTem, raw->buff + nStart, sizeof(iTem));
+    nStart += 4;
+    eph.f2 = (iTem & 0xFFFF) * pow(2.0, -66);
+    uint32_t toc = ((iTem >> 16) & 0x7FF) * 300;
+
+    iTem = 0;
+    memcpy(&iTem, raw->buff + nStart, sizeof(iTem));
+    nStart += 4;
+    eph.tgd[3] = (iTem >> 16) * pow(2.0, -34);
+    eph.tgd[5] = (int16_t)(iTem & 0x0000FFFF) * pow(2.0, -34);
+
+    iTem = 0;
+    memcpy(&iTem, raw->buff + nStart, sizeof(iTem));
+    nStart += 4;
+    eph.tgd[2] = (iTem >> 16) * pow(2.0, -34);
+    eph.tgd[4] = (iTem & 0x0000FFFF) * pow(2.0, -34);
+
+    iTem = 0;
+    memcpy(&iTem, raw->buff + nStart, sizeof(iTem));
+    nStart += 4;
+    eph.tgd[1] = (iTem & 0x0000FFFF) * pow(2.0, -34);
+
+    iTem = 0;
+    memcpy(&iTem, raw->buff + nStart, sizeof(iTem));
+    nStart += 4;
+
+    uint32_t SISAoc2 = (iTem & 0x00000007)<<28;
+    uint32_t SISAoc1= ((iTem >> 3) & 0x00000007)<<25;
+    uint32_t SISAocb = ((iTem >> 6) & 0x0000001F)<<20;
+    uint32_t top = ((iTem >> 11) & 0x000007FF)<<9;
+    uint32_t SISAoe = ((iTem >> 22) & 0x0000001F)<<4;
+
+    eph.sva = SISAoe;// SISAoc2 | SISAoc1 | SISAocb | top | SISAoe;// GetURA(nURA);
+
+    eph.toes = toe;
+    eph.toe = bdt2gpst(bdt2time(eph.week, toe));
+    eph.toc = bdt2gpst(bdt2time(eph.week, toc));
+    eph.ttr = bdt2gpst(bdt2time(eph.week, ttr));
+
+    eph.code = nDataSource;
+
+    //addEph(nav, &eph);
+
+    raw->nav.eph[sat - 1] = eph;
+    raw->ephsat = sat;
+    raw->ephset = 0;
+
+    return 2;
+}
+
+extern int readGalEph(raw_t *raw)//unsigned char* buff, int nStart, nav_t *nav
 {
 	static unsigned const_E1B_Source = 1;
 	static unsigned const_E5B_Source = 2;
 	static unsigned const_E5A_Source = 3;
 
-	if (buff == NULL)
+	if (raw->buff == NULL)
 	{
 		return 0;
 	}
 
-	nStart = 8;
+	int nStart = 8;
+    int set = 0;
 
 	eph_t eph;
-	memcpy(&eph.sat, buff + nStart, 2);
+    unsigned short prn = 0;
+    int sat = 0;
+	memcpy(&prn, raw->buff + nStart, 2);
+    sat = satno(SYS_GAL, prn);
+    eph.sat = sat;
 	nStart += 2;
 	nStart += 2;
 
-	ULONG tow = 0;
-	memcpy(&tow, buff + nStart, sizeof(tow));
+    uint32_t ttr = 0;
+	memcpy(&ttr, raw->buff + nStart, sizeof(ttr));
 	nStart += 4;
 
-	ULONG SF1words[10] = { 0 };
-	ULONG SF2words[10] = { 0 };
-	ULONG SF3words[10] = { 0 }; /* 30 wrods */
-	memcpy(SF1words, buff + nStart, 40);
+    uint32_t SF1words[10] = { 0 };
+    uint32_t SF2words[10] = { 0 };
+    uint32_t SF3words[10] = { 0 }; /* 30 wrods */
+	memcpy(SF1words, raw->buff + nStart, 40);
 	nStart += 40;
-	memcpy(SF2words, buff + nStart, 40);
+	memcpy(SF2words, raw->buff + nStart, 40);
 	nStart += 40;
-	memcpy(SF3words, buff + nStart, 40);
+	memcpy(SF3words, raw->buff + nStart, 40);
 	nStart += 40;
 
 	double gpssec = (SF1words[0] & G20BITS)*1.0; /* 20 bits */
 
-	BYTE nSrc = SF1words[0] >> 20 & G2BITS;
+    uint8_t nSrc = SF1words[0] >> 20 & G2BITS;
 
-	eph.toc.time = (SF1words[1] & G14BITS)*60.0;
+    double toc = (SF1words[1] & G14BITS)*60.0;
+	//eph.toc.time = (SF1words[1] & G14BITS)*60.0;
 
 	eph.f0 = getSignData(SF1words[2] & G31BITS, 31, TRUE)*pow(2.0, -34);
 	eph.f1 = getSignData(SF1words[3] & G21BITS, 21, TRUE)*pow(2.0, -46);
 	eph.f2 = getSignData(SF1words[4] & G6BITS, 6, TRUE)*pow(2.0, -59);
 
-	eph.toe.time = (SF1words[5] & G14BITS)*60.0;
+    double toe = (SF1words[5] & G14BITS)*60.0;
+	//eph.toe.time = (SF1words[5] & G14BITS)*60.0;
 
-	eph.A = SF1words[6] * pow(2.0, -19);
+	eph.A = pow(SF1words[6] * pow(2.0, -19), 2.0);
 
 	eph.e = SF1words[7] * pow(2.0, -33);
 
@@ -1938,32 +2163,30 @@ static int readGalileoEph(unsigned char* buff, int nStart, nav_t *nav)
 	double ai0 = (SF3words[3] & G11BITS)*pow(2.0, -2);
 	double ai1 = getSignData(SF3words[3] >> 11 & G11BITS, 11, TRUE)*pow(2.0, -8);
 
-
-	BYTE SF[5] = { 0 };
-	for (int i = 0; i < 5; ++i)
+    uint8_t SF[5] = { 0 };
+	int i=0;
+	for (i = 0; i < 5; ++i)
 	{
 		SF[i] = SF3words[4] >> i & 0x1;
 	}/* 5 bits for flag */
 	double ai2 = getSignData(SF3words[4] >> 5 & G14BITS, 14, TRUE)*pow(2.0, -15);
 
-	eph.tgd[2] = getSignData(SF3words[5] & G10BITS, 10, TRUE)*pow(2.0, -32);
-	eph.tgd[1] = getSignData(SF3words[5] >> 10 & G10BITS, 10, TRUE)*pow(2.0, -32);//�޸�,��tgd1��tgd2����[2019/06/28]
+	eph.tgd[1] = getSignData(SF3words[5] & G10BITS, 10, TRUE)*pow(2.0, -32);
+	eph.tgd[0] = getSignData(SF3words[5] >> 10 & G10BITS, 10, TRUE)*pow(2.0, -32);
 
-
-	BYTE E1BDVS = SF3words[6] & 0x1;
-	BYTE E5BDVS = SF3words[6] >> 1 & 0x1;
-	BYTE E1BH = SF3words[6] >> 2 & 0x3;
-	BYTE E5BH = SF3words[6] >> 4 & 0x3;
-	unsigned char SISA = (SF3words[6] >> 6) & 0xFF;
-	eph.sva = GetURAFromSISA(SISA);
-
+    uint8_t E1BDVS = SF3words[6] & 0x1;
+    uint8_t E5BDVS = SF3words[6] >> 1 & 0x1;
+    uint8_t E1BH = SF3words[6] >> 2 & 0x3;
+    uint8_t E5BH = SF3words[6] >> 4 & 0x3;
+    uint8_t SISA = (SF3words[6] >> 6) & 0xFF;
+    eph.sva = SISA;// GetURAFromSISA(SISA);
 
 	//BYTE E5BH = SF3words[6] >> 8 & G2BITS;  // 0 for invalid
 	//BYTE E1BH = SF3words[6] >> 10 & G2BITS;
 	//BYTE E5BDVS = SF3words[6] >> 12 & 0x1;  // 0 for invalid
 	//BYTE E1BDVS = SF3words[6] >> 13 & 0x1;
 
-	SHORT nDataSource = 0;
+    int16_t nDataSource = 0;
 	if (nSrc == const_E1B_Source)
 	{
 		nDataSource |= eGALILEO_SRC_E1B;         // E1
@@ -1981,8 +2204,8 @@ static int readGalileoEph(unsigned char* buff, int nStart, nav_t *nav)
 	}
 	double dataSrc = nDataSource * 1.0;
 
-	BYTE E5AH = 0;
-	BYTE E5ADVS = 0;
+    uint8_t E5AH = 0;
+    uint8_t E5ADVS = 0;
 	if (SF3words[7] & 0x1)
 	{
 		double toc = (SF3words[7] >> 1 & G14BITS)*60.0;
@@ -1994,12 +2217,14 @@ static int readGalileoEph(unsigned char* buff, int nStart, nav_t *nav)
 		double af0 = getSignData(SF3words[8] & G31BITS, 31, TRUE)*pow(2.0, -34);
 		double af1 = getSignData(SF3words[9] & G21BITS, 21, TRUE)*pow(2.0, -46);
 		double af2 = getSignData(SF3words[9] >> 21 & G6BITS, 6, TRUE)*pow(2.0, -59);
+
+        set = 1;
 	}/* FNAV_DATA */
 
-	USHORT Health = 0;
+    uint16_t Health = 0;
 	if (E1BDVS)
 	{
-		Health |= eGALILEO_HEALTH_E1B_DV;   // ��ȷ��������λ��Ч���Ƿ���Ҫȡ��?
+		Health |= eGALILEO_HEALTH_E1B_DV; 
 	}
 	if (E1BH)
 	{
@@ -2023,7 +2248,19 @@ static int readGalileoEph(unsigned char* buff, int nStart, nav_t *nav)
 	}
 	eph.svh = Health;
 
-	addEph(nav, &eph);
+    eph.toes = toe;
+    eph.week += 1024;
+    eph.toe = gpst2time(eph.week, toe);
+    eph.toc = gpst2time(eph.week, toc);
+    eph.ttr = gpst2time(eph.week, ttr);
+
+    eph.code = nDataSource;
+
+	//addEph(nav, &eph);
+    raw->nav.eph[sat - 1] = eph;
+    raw->ephsat = sat;
+    raw->ephset = set;
+
 	return 2;
 }
 
@@ -2031,7 +2268,7 @@ void GetCalendarTime(int N4, int Nt, double sec, GPSTime *timeMsg)
 {
 	int J = 0;
 	int nDay = 0;
-	if (Nt <= 366)   //[2015/1/7 GaoWei]��������������ڣ���ȡ�Ⱥ�
+	if (Nt <= 366)
 	{
 		J = 0;
 		nDay = Nt;
@@ -2067,7 +2304,8 @@ void GetCalendarTime(int N4, int Nt, double sec, GPSTime *timeMsg)
 	}
 
 	int daycount = 0;
-	for (int i = 1; i < 13; i++)
+	int i=0;
+	for (i = 1; i < 13; i++)
 	{
 		daycount += MonthDayTab[nIsLeapYear][i];
 
@@ -2093,8 +2331,8 @@ int readGlonassString(ULONG asStrings[][3], int size, geph_t *item)
 	int P = 0, P1 = 0, P2 = 0, P3 = 0, P4 = 0, M = 0;
 	double tk = 0.0;
 	double tb = 0.0;
-
-	for (int i = 0; i < size; ++i)
+    int i=0;
+	for (i = 0; i < size; ++i)
 	{
 		nTem = asStrings[i][0] >> 27 & 0xf; //super-frame number
 
@@ -2118,7 +2356,7 @@ int readGlonassString(ULONG asStrings[][3], int size, geph_t *item)
 		else if (nTem == 2)//GLONASS_String 2
 		{
 			nTem = asStrings[i][0] >> 24 & 0x7;
-			item->svh = nTem >> 2 & 0x1;  //ֻȡ���λ����2λ������
+			item->svh = nTem >> 2 & 0x1;
 
 			P2 = asStrings[i][0] >> 25 & 0x1;
 
@@ -2195,7 +2433,7 @@ int readGlonassString(ULONG asStrings[][3], int size, geph_t *item)
 		double dStatusflag = P | P1 << 1 | P2 << 3 | P3 << 4 || P4 << 5 || M << 6;
 	}
 
-	/*����ʱ��Ϊ��ֵ[2017/4/14 Amanda]*/
+	
 	if (tb < 0)
 	{
 		tb += 86400;
@@ -2232,8 +2470,9 @@ static int readGlonassEph(unsigned char* buff, int nStart, nav_t *nav)
 	memcpy(&GPSSec, buff + nStart, sizeof(GPSSec));
 	nStart += 4;
 
-	ULONG asStrings[5][3] = { 0 };
-	for (int i = 0; i < 5; i++)
+	uint32_t asStrings[5][3] = { 0 };
+	int i=0;
+	for (i = 0; i < 5; i++)
 	{
 		memcpy(asStrings[i], buff + nStart, 12);
 		nStart += 12;
@@ -2241,12 +2480,14 @@ static int readGlonassEph(unsigned char* buff, int nStart, nav_t *nav)
 
 	readGlonassString(asStrings, 5, &eph);
 
-	addGeph(nav, &eph);
+	//addGeph(nav, &eph);
 	return 2;
 }
 
-extern int readMsg1(unsigned char* buff, int nStart, sta_t *sta)
+extern int readMsg1(raw_t *raw)//unsigned char* buff, int nStart, sta_t *sta
 {
+	uint8_t *buff=raw->buff;
+	sta_t   *sta =&raw->sta;
 	if (buff == NULL)
 	{
 		return 0;
@@ -2268,9 +2509,9 @@ extern int readMsg1(unsigned char* buff, int nStart, sta_t *sta)
 		double xyz[3] = { 0 };
 		pos2ecef(blh, xyz);
 
-		sta->pos[0] = xyz[0];
-		sta->pos[1] = xyz[1];
-		sta->pos[2] = xyz[2];
+        sta->pos[0] = xyz[0];
+        sta->pos[1] = xyz[1];
+        sta->pos[2] = xyz[2];
 	}
 	return 3;
 }
