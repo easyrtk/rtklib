@@ -2736,8 +2736,6 @@ extern int decode_rtcm3(rtcm_t *rtcm)
     
     trace(3,"decode_rtcm3: len=%3d type=%d\n",rtcm->len,type);
 
-//	fprintf(rtcm->ft,"%d\n",type);
-//	sprintf(rtcm->msgtype,"RTCM-- %4d (%4d):",type,rtcm->len);
 	if (rtcm->outtype&&type==4054) {
 		sprintf(rtcm->cmccmsgtype,"RTCM %4d (%4d):",type,rtcm->len);
 	}
@@ -2749,7 +2747,6 @@ extern int decode_rtcm3(rtcm_t *rtcm)
         tow=time2gpst(utc2gpst(timeget()),&week);
         rtcm->time=gpst2time(week,floor(tow));
 	}
-//	printf("%d\n",type);
 	switch (type) {
         case 1001: ret=decode_type1001(rtcm); break; /* not supported */
         case 1002: ret=decode_type1002(rtcm); break;

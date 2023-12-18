@@ -287,7 +287,7 @@ extern int input_rtcm3(rtcm_t *rtcm, uint8_t data)
     }
     rtcm->buff[rtcm->nbyte++]=data;
     
-	if (rtcm->nbyte==3) { //1 byte == 8 bits
+	if (rtcm->nbyte==3) { 
         rtcm->len=getbitu(rtcm->buff,14,10)+3; /* length without parity */
     }
     if (rtcm->nbyte<3||rtcm->nbyte<rtcm->len+3) return 0;

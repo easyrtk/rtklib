@@ -272,14 +272,7 @@ extern int input_rtcm3_type(rtcm_buff_t *rtcm, unsigned char data)
                 if (rtcm->cels[j]) rtcm->ncel++;
             }
         }
-		//printf("%10.3f,%4i,%4i,%4i,%4i,%4i,%4i", rtcm->tow, rtcm->type, nbyte, rtcm->len + 3, rtcm->ncel, rtcm->nsat, rtcm->nsig);
-        //for (j = 0; j < rtcm->nsig; ++j)
-        ///{
-        //    printf(",%2i", rtcm->sigs[j]);
-        //}
-        //printf("\n");
-
-#if 0 //_WIN32
+#if 0 /*_WIN32*/
         printf("%10.3f,%4i,%4i,%4i,%4i,%4i,%4i,SAT:", rtcm->tow, rtcm->type, nbyte, rtcm->len + 3, rtcm->nsat, rtcm->nsig, rtcm->ncel);
         for (j = 0; j < 64; ++j)
         {
@@ -454,7 +447,7 @@ extern int decode_type1033_(uint8_t* buff, int len, char *staname, char* antdes,
     strncpy(recver, ver,n2); recver [n2]='\0';
     strncpy(recsno, rsn,n3); recsno [n3]='\0';
     
-    //printf("rtcm3 1033: ant=%s:%s rec=%s:%s:%s\n",des,sno,rec,ver,rsn);
+    /*printf("rtcm3 1033: ant=%s:%s rec=%s:%s:%s\n",des,sno,rec,ver,rsn);*/
     return 5;
 }
 
@@ -478,7 +471,7 @@ extern int encode_aid1 (uint8_t* buff, aid_sol_t *sol)
 	nsat =sol->nsat;
 	solt =sol->type;
 
-    //trace(3,"encode_aid 1:        subtype=%d rcv=%d sync=%d tow=%d\n",1,rcv,sync,tow);
+    /*trace(3,"encode_aid 1:        subtype=%d rcv=%d sync=%d tow=%d\n",1,rcv,sync,tow);*/
 
     /* set preamble and reserved */
     setbitu_(buff,i, 8,RTCM3PREAMB); i+= 8;
@@ -508,7 +501,7 @@ extern int encode_aid1 (uint8_t* buff, aid_sol_t *sol)
     }
     /* message length (header+data) (bytes) */
     if ((len=i/8)>=3+1024) {
-        //trace(2,"generate rtcm 3 message length error len=%d\n",len-3);
+        /*trace(2,"generate rtcm 3 message length error len=%d\n",len-3);*/
         return 0;
     }
     /* message length without header and parity */
@@ -534,7 +527,7 @@ extern int encode_aid2 (uint8_t* buff, aid_ppl_t *ppl)
 	hpl  =ROUND(ppl->hpl /1E-2);
 	vpl  =ROUND(ppl->vpl /1E-2);
 
-    //trace(3,"encode_aid 2:        subtype=%d rcv=%d sync=%d tow=%d\n",2,rcv,sync,tow);
+    /*trace(3,"encode_aid 2:        subtype=%d rcv=%d sync=%d tow=%d\n",2,rcv,sync,tow);*/
 
     /* set preamble and reserved */
     setbitu_(buff,i, 8,RTCM3PREAMB); i+= 8;
@@ -558,7 +551,7 @@ extern int encode_aid2 (uint8_t* buff, aid_ppl_t *ppl)
     }
     /* message length (header+data) (bytes) */
     if ((len=i/8)>=3+1024) {
-        //trace(2,"generate rtcm 3 message length error len=%d\n",len-3);
+        /*trace(2,"generate rtcm 3 message length error len=%d\n",len-3);*/
         return 0;
     }
     /* message length without header and parity */
@@ -584,7 +577,7 @@ extern int encode_aid5 (uint8_t* buff, int idx, int rcv, double ws, double* blh)
 	lon  =ROUND(blh[1]*R2D/1E-7);
 	alt  =ROUND(blh[2]/1E-3);
 
-    //trace(3,"encode_aid 5:        subtype=%d rcv=%d sync=%d tow=%d lat=%12.7f lon=%12.7f alt=%10.4f\n",1,rcv,sync,tow,lat*1E-7,lon*1E-7,alt*1E-3);
+    /*trace(3,"encode_aid 5:        subtype=%d rcv=%d sync=%d tow=%d lat=%12.7f lon=%12.7f alt=%10.4f\n",1,rcv,sync,tow,lat*1E-7,lon*1E-7,alt*1E-3);*/
     if (idx<0||idx>4) return 0;
     type+=idx;
 
@@ -610,7 +603,7 @@ extern int encode_aid5 (uint8_t* buff, int idx, int rcv, double ws, double* blh)
     }
     /* message length (header+data) (bytes) */
     if ((len=i/8)>=3+1024) {
-        //trace(2,"generate rtcm 3 message length error len=%d\n",len-3);
+        /*trace(2,"generate rtcm 3 message length error len=%d\n",len-3);*/
         return 0;
     }
     /* message length without header and parity */
@@ -677,7 +670,7 @@ extern int encode_aidX1(uint8_t* buff, aid_sat_t* sat, int n, double ws, int sys
 		}
 		/* message length (header+data) (bytes) */
 		if ((len=i/8)>=3+1024) {
-			//trace(2,"generate rtcm 3 message length error len=%d\n",len-3);
+			/*trace(2,"generate rtcm 3 message length error len=%d\n",len-3);*/
 			return 0;
 		}
 		/* message length without header and parity */
@@ -753,7 +746,7 @@ extern int encode_aidX2(uint8_t* buff, aid_sat_t* sat, int n, double ws, int sys
 		}
 		/* message length (header+data) (bytes) */
 		if ((len=i/8)>=3+1024) {
-			//trace(2,"generate rtcm 3 message length error len=%d\n",len-3);
+			/*trace(2,"generate rtcm 3 message length error len=%d\n",len-3);*/
 			return 0;
 		}
 		/* message length without header and parity */
@@ -828,7 +821,7 @@ extern int encode_aidX3(uint8_t* buff, aid_atm_t* atm, int n, double ws, int sys
 		}
 		/* message length (header+data) (bytes) */
 		if ((len=i/8)>=3+1024) {
-			//trace(2,"generate rtcm 3 message length error len=%d\n",len-3);
+			/*trace(2,"generate rtcm 3 message length error len=%d\n",len-3);*/
 			return 0;
 		}
 		/* message length without header and parity */
@@ -907,7 +900,7 @@ extern int encode_aidX4(uint8_t* buff, aid_atm_t* atm, int n, double ws, int sys
 		}
 		/* message length (header+data) (bytes) */
 		if ((len=i/8)>=3+1024) {
-			//trace(2,"generate rtcm 3 message length error len=%d\n",len-3);
+			/*trace(2,"generate rtcm 3 message length error len=%d\n",len-3);*/
 			return 0;
 		}
 		/* message length without header and parity */
@@ -931,7 +924,7 @@ extern int decode_aid1 (uint8_t* buff, int nlen, aid_sol_t *sol)
     int lat=0,lon=0,alt=0,acc_N=0,acc_E=0,acc_U=0,pdop=0;
 	int nsat=0,solt=0;
 
-    //trace(3,"decode_aid 1:        subtype=%d rcv=%d sync=%d tow=%d\n",1,rcv,sync,tow);
+    /*trace(3,"decode_aid 1:        subtype=%d rcv=%d sync=%d tow=%d\n",1,rcv,sync,tow);*/
 	if ((8+6+10+12+2+9+20+1+16+32+32+32+16+16+16+16+8+8)>(nlen*8)) return 0;
 
     /* set preamble and reserved */
@@ -976,7 +969,7 @@ extern int decode_aid2 (uint8_t* buff, int nlen, aid_ppl_t *ppl)
     int i=0,sync=0,rcv=0,tow=0,len=0,crc=0,type=0,ver=0,subtype=0;
     int pvar=0,hpl=0,vpl=0;
 
-    //trace(3,"decode_aid 2:        subtype=%d rcv=%d sync=%d tow=%d\n",2,rcv,sync,tow);
+    /*trace(3,"decode_aid 2:        subtype=%d rcv=%d sync=%d tow=%d\n",2,rcv,sync,tow);*/
 	if ((8+6+10+12+2+9+20+1+16+16+16+16)>(nlen*8)) return 0;
 
     /* set preamble and reserved */
@@ -1010,7 +1003,7 @@ extern int decode_aid5 (uint8_t* buff, int nlen, int*idx, int* rcv, double* ws, 
     int lat=0,lon=0,alt=0,acc_N=0,acc_E=0,acc_U=0,pdop=0;
 	int nsat=0,solt=0;
 
-    //trace(3,"decode_aid 1:        subtype=%d rcv=%d sync=%d tow=%d\n",1,rcv,sync,tow);
+    /*trace(3,"decode_aid 1:        subtype=%d rcv=%d sync=%d tow=%d\n",1,rcv,sync,tow);*/
 	if ((8+6+10+12+2+9+20+1+16+32+32+32)>(nlen*8)) return 0;
 
     /* set preamble and reserved */
