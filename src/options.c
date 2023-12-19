@@ -408,6 +408,9 @@ static void buff2sysopts(void)
         }
         else *ps=antpostype_[i]-1;
     }
+    /*lyj add*/
+    memcpy(prcopt_.RefRovxyz,prcopt_.ru,3*sizeof(double));
+    memcpy(prcopt_.dRefRovenu,prcopt_.antdel[0],3*sizeof(double));
     /* excluded satellites */
     for (i=0;i<MAXSAT;i++) prcopt_.exsats[i]=0;
     if (exsats_[0]!='\0') {
@@ -541,6 +544,7 @@ extern void setsysopts(const prcopt_t *prcopt, const solopt_t *solopt,
     
     resetsysopts();
     if (prcopt) prcopt_=*prcopt;
+
     if (solopt) solopt_=*solopt;
     if (filopt) filopt_=*filopt;
     sysopts2buff();
