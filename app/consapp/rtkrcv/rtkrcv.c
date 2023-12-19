@@ -116,6 +116,7 @@ static int modflgr[256] ={0};           /* modified flags of receiver options */
 static int modflgs[256] ={0};           /* modified flags of system options */
 static int moniport     =0;             /* monitor port */
 static int keepalive    =0;             /* keep alive flag */
+static int start        =0;             /* auto start */
 static int fswapmargin  =30;            /* file swap margin (s) */
 static char sta_name[256]="";           /* station name */
 
@@ -747,12 +748,14 @@ static void prstatus(vt_t *vt)
             rtk.Pa?SQRT(rtk.Pa[0]):0,rtk.Pa?SQRT(rtk.Pa[1+1*rtk.na]):0,rtk.Pa?SQRT(rtk.Pa[2+2*rtk.na]):0);
     vt_printf(vt,"%-28s: %.3f,%.3f,%.3f\n","pos enu (m) rover",
             rtk.sol.enu[0],rtk.sol.enu[1],rtk.sol.enu[2]);
-    vt_printf(vt,"%-28s: %.3f,%.3f\n","HPL  VPL",
+    vt_printf(vt,"%-28s: %.3f,%.3f\n","HPL VPL",
             rtk.sol.HPL,rtk.sol.VPL);
     vt_printf(vt,"%-28s: %d,%d\n","HA  VA",
             rtk.sol.HA,rtk.sol.VA);
-    vt_printf(vt,"%-28s: %.2f\%,%.2f\%\n","HARatio  VARatio",
-            haepoch*1.0/allepoch*100,vaepoch*1.0/allepoch*100);
+    if (allepoch) 
+        vt_printf(vt,"%-28s: %.2f\%,%.2f\%\n","HARatio  VARatio",haepoch*1.0/allepoch*100,vaepoch*1.0/allepoch*100);
+    else
+        vt_printf(vt,"%-28s: %.2f\%,%.2f\%\n","HARatio  VARatio",0,0);
     vt_printf(vt,"%-28s: %.3f,%.3f,%.3f\n","pos xyz (m) base",
             rtk.rb[0],rtk.rb[1],rtk.rb[2]);
     if (norm(rtk.rb,3)>0.0) ecef2pos(rtk.rb,pos); else pos[0]=pos[1]=pos[2]=0.0;
@@ -1364,6 +1367,12 @@ static void *con_thread(void *arg)
         con->state=0;
         return 0;
     }
+    /* auto start if option set */
+    if (start&1) { /* start with console */
+        cmd_start(args,narg,con->vt);
+        start=0;
+    }
+   
     while (con->state) {
         
         /* output prompt */
@@ -1626,11 +1635,11 @@ static void accept_sock(int ssock, con_t **con)
 int main(int argc, char **argv)
 {
     con_t *con[MAXCON]={0};
-    int i,start=0,port=0,outstat=0,trace=0,sock=0;
+    int i,port=0,outstat=0,trace=0,sock=0;
     char *dev="",file[MAXSTR]="";
     
     for (i=1;i<argc;i++) {
-        if      (!strcmp(argv[i],"-s")) start=1;
+        if      (!strcmp(argv[i],"-s")) start|=1;
         else if (!strcmp(argv[i],"-p")&&i+1<argc) port=atoi(argv[++i]);
         else if (!strcmp(argv[i],"-m")&&i+1<argc) moniport=atoi(argv[++i]);
         else if (!strcmp(argv[i],"-d")&&i+1<argc) dev=argv[++i];
