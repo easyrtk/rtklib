@@ -450,12 +450,18 @@ static void sysopts2buff(void)
         ps=i==0?&prcopt_.rovpos:&prcopt_.refpos;
         rr=i==0?prcopt_.ru:prcopt_.rb;
         
-        if (*ps==0) {
+        /*if (*ps==0) {
             antpostype_[i]=0;
             ecef2pos(rr,pos);
             antpos_[i][0]=pos[0]*R2D;
             antpos_[i][1]=pos[1]*R2D;
             antpos_[i][2]=pos[2];
+        }*/
+        if (*ps==0) {
+            antpostype_[i]=1;
+            antpos_[i][0]=rr[0];
+            antpos_[i][1]=rr[1];
+            antpos_[i][2]=rr[2];
         }
         else antpostype_[i]=*ps+1;
     }
