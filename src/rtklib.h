@@ -861,14 +861,14 @@ typedef struct {        /* solution type */
 	float thres;        /* AR ratio threshold for valiation */
 
     /*lyj add*/
-	double RefRovxyz[3];  /*Á÷¶¯Õ¾²Î¿¼×ø±ê ecef*/
-	double dRefRovenu[3]; /*Á÷¶¯Õ¾²Î¿¼×ø±ê enu±ä»¯Á¿*/
+	double RefRovxyz[3];  /*ï¿½ï¿½ï¿½ï¿½Õ¾ï¿½Î¿ï¿½ï¿½ï¿½ï¿½ï¿½ ecef*/
+	double dRefRovenu[3]; /*ï¿½ï¿½ï¿½ï¿½Õ¾ï¿½Î¿ï¿½ï¿½ï¿½ï¿½ï¿½ enuï¿½ä»¯ï¿½ï¿½*/
     double enu[3];
-	double HPL;           /*Ë®Æ½±£»¤Ë®Æ½*/
-	double VPL;           /*´¹Ö±±£»¤Ë®Æ½*/
+	double HPL;           /*Ë®Æ½ï¿½ï¿½ï¿½ï¿½Ë®Æ½*/
+	double VPL;           /*ï¿½ï¿½Ö±ï¿½ï¿½ï¿½ï¿½Ë®Æ½*/
 	int HA;
     int VA;
-	double var;           /*Ñéºó·½²î*/
+	double var;           /*ï¿½ï¿½ó·½²ï¿½*/
 } sol_t;
 
 typedef struct {        /* solution buffer type */
@@ -1039,8 +1039,8 @@ typedef struct {        /* processing options type */
 	char pppopt[256];   /* ppp option */
 
 	/*lyj add*/
-	double RefRovxyz[3];  /*Á÷¶¯Õ¾²Î¿¼×ø±ê ecef*/
-	double dRefRovenu[3]; /*Á÷¶¯Õ¾²Î¿¼×ø±ê enu±ä»¯Á¿*/
+	double RefRovxyz[3];  /*ï¿½ï¿½ï¿½ï¿½Õ¾ï¿½Î¿ï¿½ï¿½ï¿½ï¿½ï¿½ ecef*/
+	double dRefRovenu[3]; /*ï¿½ï¿½ï¿½ï¿½Õ¾ï¿½Î¿ï¿½ï¿½ï¿½ï¿½ï¿½ enuï¿½ä»¯ï¿½ï¿½*/
     gtime_t tr;           /* approximate time for rtcm */
 } prcopt_t;
 
@@ -1153,6 +1153,16 @@ typedef struct {        /* ambiguity control type */
     char flags[MAXSAT]; /* fix flags */
 } ambc_t;
 
+typedef struct {   /*check struct*/
+    int nf;
+    int nm;
+    sol_t fixsolbuf[300];
+    sol_t movecheck[4];
+    double meanfixsol[3];
+    double RefRovxyz[3];
+    double RefRovblh[3];
+} check_t;
+
 typedef struct {        /* RTK control/result type */
     sol_t  sol;         /* RTK solution */
     double rb[6];       /* base position/velocity (ecef) (m|m/s) */
@@ -1166,6 +1176,7 @@ typedef struct {        /* RTK control/result type */
     int neb;            /* bytes in error message buffer */
     char errbuf[MAXERRMSG]; /* error message buffer */
     prcopt_t opt;       /* processing options */
+    check_t cc;         /*check struct*/
 } rtk_t;
 
 typedef struct {        /* receiver raw data control type */
