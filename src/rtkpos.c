@@ -1476,7 +1476,7 @@ static void calmeanfixsol(rtk_t *rtk, int nepoch)
 {
     int i, j;
     double sumrr[3]={0};
-    for (i=rtk->cc.nf-nepoch;i<nepoch;i++) {
+    for (i=rtk->cc.nf-nepoch;i<rtk->cc.nf;i++) {
         for (j=0;j<3;j++) sumrr[j]+=rtk->cc.fixsolbuf[i].rr[j];
     }
     for (j=0;j<3;j++) rtk->cc.meanfixsol[j]=sumrr[j]/nepoch;
@@ -1788,10 +1788,9 @@ static int relpos(rtk_t *rtk, const obsd_t *obs, int nu, int nr,
         }
         else if ((rtk->cc.nf >= 30) && (rtk->cc.nf < 300)) { /*真实坐标基于前30s和conf*/
             if (stat==SOLQ_FIX) rtk->cc.fixsolbuf[rtk->cc.nf++]=rtk->sol;
-            if ((rtk->cc.meanfixsol[0]==0.0)||(rtk->cc.meanfixsol[1]==0.0)||(rtk->cc.meanfixsol[2]==0.0))
-                calmeanfixsol(rtk,30);
-            /*for(i=0;i<3;i++) dxyz[i]=rtk->cc.meanfixsol[i]-RefRovxyz[i];*/
-            for(i=0;i<3;i++) dxyz[i]=rtk->cc.fixsolbuf[30].rr[i]-RefRovxyz[i];
+            calmeanfixsol(rtk,30);
+            for(i=0;i<3;i++) dxyz[i]=rtk->cc.meanfixsol[i]-RefRovxyz[i];
+            /*for(i=0;i<3;i++) dxyz[i]=rtk->cc.fixsolbuf[30].rr[i]-RefRovxyz[i];*/
 			ecef2enu(RefRovblh, dxyz, denu); /*����õ�denu*/
 			if ((SQRT(denu[0]*denu[0]+denu[1]*denu[1])>=0.3)||(fabs(denu[2])>=0.3)) {
                 memcpy(rtk->cc.RefRovxyz,RefRovxyz,3*sizeof(double));
@@ -1837,8 +1836,7 @@ static int relpos(rtk_t *rtk, const obsd_t *obs, int nu, int nr,
             if (stat==SOLQ_FIX) {
                 addfixsol(rtk);
             }
-            if ((rtk->cc.meanfixsol[0]==0.0)||(rtk->cc.meanfixsol[1]==0.0)||(rtk->cc.meanfixsol[2]==0.0))
-                calmeanfixsol(rtk,300);
+            calmeanfixsol(rtk,300);
             for(i=0;i<3;i++) dxyz[i]=rtk->cc.meanfixsol[i]-RefRovxyz[i];
 			ecef2enu(RefRovblh, dxyz, denu); /*denu*/
 			if ((SQRT(denu[0]*denu[0]+denu[1]*denu[1])>=0.3)||(fabs(denu[2])>=0.3)) {
