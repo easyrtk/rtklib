@@ -1773,18 +1773,31 @@ static int relpos(rtk_t *rtk, const obsd_t *obs, int nu, int nr,
             if ((fabs(denu[2]) >= 5)) rtk->sol.VA=1;
             else rtk->sol.VA=0;
 
-            /*cal sol.rr  HPL VPL denu*/
-            ecef2pos(rtk->sol.rr,pos); soltocov(&rtk->sol,P);  covenu(pos,P,Q);
-			for(i=0;i<3;i++) denu[i]=3*SQRT(Q[0+i*4]);
-            for (i=0;i<3;i++) rtk->sol.enu[i]=denu[i];
-			enu2ecef(RefRovblh, denu, dxyz);
-			for (i=0;i<3;i++) rtk->sol.rr[i]=RefRovxyz[i]+dxyz[i];
-			Q[0]+=0.005*0.005; /* add 5 mm in E,N, and U */
-			Q[4]+=0.005*0.005;
-			Q[8]+=0.005*0.005;
-			rtk->sol.HPL=SQRT(Q[0]+Q[4])*13; /* change to 13 from 6.5 */
-			rtk->sol.VPL=SQRT(Q[8])*15;      /* change to 15 from 7.5 */
-
+            if (rtk->sol.HA || rtk->sol.VA) {
+                /*cal sol.rr  HPL VPL denu*/
+                ecef2pos(rtk->sol.rr,pos); soltocov(&rtk->sol,P);  covenu(pos,P,Q);
+                Q[0]+=0.005*0.005; /* add 5 mm in E,N, and U */
+                Q[4]+=0.005*0.005;
+                Q[8]+=0.005*0.005;
+                rtk->sol.HPL=SQRT(Q[0]+Q[4])*13; /* change to 13 from 6.5 */
+                rtk->sol.VPL=SQRT(Q[8])*15;      /* change to 15 from 7.5 */
+                for(i=0;i<3;i++) dxyz[i]=rtk->sol.rr[i]-RefRovxyz[i];
+                ecef2enu(RefRovblh, dxyz, denu); /*����õ�denu*/
+                for (i=0;i<3;i++) rtk->sol.enu[i]=denu[i];
+            }
+            else {
+                /*cal sol.rr  HPL VPL denu*/
+                ecef2pos(rtk->sol.rr,pos); soltocov(&rtk->sol,P);  covenu(pos,P,Q);
+                for(i=0;i<3;i++) denu[i]=3*SQRT(Q[0+i*4]);
+                for (i=0;i<3;i++) rtk->sol.enu[i]=denu[i];
+                enu2ecef(RefRovblh, denu, dxyz);
+                for (i=0;i<3;i++) rtk->sol.rr[i]=RefRovxyz[i]+dxyz[i];
+                Q[0]+=0.005*0.005; /* add 5 mm in E,N, and U */
+                Q[4]+=0.005*0.005;
+                Q[8]+=0.005*0.005;
+                rtk->sol.HPL=SQRT(Q[0]+Q[4])*13; /* change to 13 from 6.5 */
+                rtk->sol.VPL=SQRT(Q[8])*15;      /* change to 15 from 7.5 */
+            }
         }
         else if ((rtk->cc.nf >= 30) && (rtk->cc.nf < 300)) { /*真实坐标基于前30s和conf*/
             if (stat==SOLQ_FIX) rtk->cc.fixsolbuf[rtk->cc.nf++]=rtk->sol;

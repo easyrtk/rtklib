@@ -738,14 +738,14 @@ static void prstatus(vt_t *vt)
             pos[0]*R2D,pos[1]*R2D,pos[2]);
     ecef2enu(pos,rtk.sol.rr+3,vel);
     vt_printf(vt,"%-28s: %.3f,%.3f,%.3f\n","vel enu (m/s) rover",vel[0],vel[1],vel[2]);
-    vt_printf(vt,"%-28s: %.3f,%.3f,%.3f\n","pos xyz float (m) rover",
+    /*vt_printf(vt,"%-28s: %.3f,%.3f,%.3f\n","pos xyz float (m) rover",
             rtk.x?rtk.x[0]:0,rtk.x?rtk.x[1]:0,rtk.x?rtk.x[2]:0);
     vt_printf(vt,"%-28s: %.3f,%.3f,%.3f\n","pos xyz float std (m) rover",
             rtk.P?SQRT(rtk.P[0]):0,rtk.P?SQRT(rtk.P[1+1*rtk.nx]):0,rtk.P?SQRT(rtk.P[2+2*rtk.nx]):0);
     vt_printf(vt,"%-28s: %.3f,%.3f,%.3f\n","pos xyz fixed (m) rover",
             rtk.xa?rtk.xa[0]:0,rtk.xa?rtk.xa[1]:0,rtk.xa?rtk.xa[2]:0);
     vt_printf(vt,"%-28s: %.3f,%.3f,%.3f\n","pos xyz fixed std (m) rover",
-            rtk.Pa?SQRT(rtk.Pa[0]):0,rtk.Pa?SQRT(rtk.Pa[1+1*rtk.na]):0,rtk.Pa?SQRT(rtk.Pa[2+2*rtk.na]):0);
+            rtk.Pa?SQRT(rtk.Pa[0]):0,rtk.Pa?SQRT(rtk.Pa[1+1*rtk.na]):0,rtk.Pa?SQRT(rtk.Pa[2+2*rtk.na]):0);*/
     vt_printf(vt,"%-28s: %.3f,%.3f,%.3f\n","pos enu (m) rover",
             rtk.sol.enu[0],rtk.sol.enu[1],rtk.sol.enu[2]);
     vt_printf(vt,"%-28s: %.3f,%.3f\n","HPL VPL",
