@@ -1528,6 +1528,21 @@ static void accept_sock(int ssock, con_t **con)
     trace(2,"remote console connection refused. addr=%s\n",
          inet_ntoa(addr.sin_addr));
 }
+/*static void log4054open(const char *file)
+{
+    gtime_t time=utc2gpst(timeget());
+    char path[1024];
+    
+    reppath(file,path,time,"","");
+    
+    if (!(fp_stat=fopen(path,"w"))) {
+        fprintf(stderr,"rtkopenstat: file open error path=%s\n",path);
+        return 0;
+    }
+    strcpy(file_stat,file);
+
+    return 1;
+}*/
 /* rtkrcv main -----------------------------------------------------------------
 * sysnopsis
 *     rtkrcv [-s][-p port][-d dev][-o file][-r level][-t level][-sta sta]
