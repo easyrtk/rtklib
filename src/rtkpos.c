@@ -52,6 +52,10 @@
 
 /* constants/macros ----------------------------------------------------------*/
 
+#define STD_PREC_VAR_THRESH 0.5  /* pos variance threshold to skip standard precision */
+                              /* solution: 0   = run every epoch, */
+                              /*           0.5 = skip except for first*/
+
 #define SQR(x)      ((x)*(x))
 #define SQRT(x)     ((x)<=0.0||(x)!=(x)?0.0:sqrt(x))
 #define MIN(x,y)    ((x)<=(y)?(x):(y))
@@ -2031,15 +2035,18 @@ extern int rtkpos(rtk_t *rtk, const obsd_t *obs, int n, const nav_t *nav)
     
     time=rtk->sol.time; /* previous epoch */
     
-    /* rover position by single point positioning */
-    if (!pntpos(obs,nu,nav,&rtk->opt,&rtk->sol,NULL,rtk->ssat,msg)) {
-        errmsg(rtk,"point pos error (%s)\n",msg);
-        
-        if (!rtk->opt.dynamics) {
-            outsolstat(rtk);
-            return 0;
+    /* rover position and time by single point positioning, skip if
+     position variance smaller than threshold */
+    if (rtk->P[0]==0||rtk->P[0]>STD_PREC_VAR_THRESH) {
+        if (!pntpos(obs,nu,nav,&rtk->opt,&rtk->sol,NULL,rtk->ssat,msg)) {
+            errmsg(rtk,"point pos error (%s)\n",msg);
+            
+            if (!rtk->opt.dynamics) {
+                outsolstat(rtk);
+                return 0;
+            }
         }
-    }
+    }else rtk->sol.time=obs[0].time;
     if (time.time!=0) rtk->tt=timediff(rtk->sol.time,time);
     
     /* single point positioning */
