@@ -684,7 +684,7 @@ static void prstatus(vt_t *vt)
     
     vt_printf(vt,"\n%s%-28s: %s%s\n",ESC_BOLD,"Parameter","Value",ESC_RESET);
     /*vt_printf(vt,"%-28s: %s %s\n","rtklib version",VER_RTKLIB,PATCH_LEVEL);*/
-    vt_printf(vt,"%-28s: %s\n","nrtkTest version","ver 1.04");
+    vt_printf(vt,"%-28s: %s\n","nrtkTest version","ver 1.05");
     vt_printf(vt,"%-28s: %d\n","rtk server thread",thread);
     vt_printf(vt,"%-28s: %s\n","rtk server state",svrstate[state]);
     vt_printf(vt,"%-28s: %d\n","processing cycle (ms)",cycle);
