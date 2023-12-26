@@ -1165,7 +1165,7 @@ static int outecef(uint8_t *buff, const char *s, const sol_t *sol,
 				 "%s%8.4f%s%8.4f%s%8.4f"
 				 "%s%8.4f%s%8.4f%s%3d%s%3d"
 				 "%s%3d%s%6.2f%s%6.1f%s%8.4f%s%6s",
-			   s,sep,sol->rr[0],sep,sol->rr[1],sep,sol->rr[2],
+			   s,sep,sol->xyz[0],sep,sol->xyz[1],sep,sol->xyz[2],
 			   sep,sol->enu[0],sep,sol->enu[1],sep,sol->enu[2],
 			   sep,sol->HPL,sep,sol->VPL,sep,sol->HA,sep,sol->VA,
 			   sep,sol->ns,sep,sol->age,sep,sol->ratio,sep,sol->var,sep,soltype);
@@ -1202,6 +1202,8 @@ static int outpos(uint8_t *buff, const char *s, const sol_t *sol,
     ecef2pos(sol->rr,pos);
     soltocov(sol,P);
 	covenu(pos,P,Q);
+
+    ecef2pos(sol->xyz,pos);
 
 	switch (sol->stat) {
 	case 1: soltype="fixed"; break;

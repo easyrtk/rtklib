@@ -863,6 +863,7 @@ typedef struct {        /* solution type */
     /*lyj add*/
 	double RefRovxyz[3];  /*����վ�ο����� ecef*/
 	double dRefRovenu[3]; /*����վ�ο����� enu�仯��*/
+    double xyz[3];
     double enu[3];
 	double HPL;           /*ˮƽ����ˮƽ*/
 	double VPL;           /*��ֱ����ˮƽ*/

@@ -1789,6 +1789,7 @@ static int relpos(rtk_t *rtk, const obsd_t *obs, int nu, int nr,
                 for(i=0;i<3;i++) dxyz[i]=rtk->sol.rr[i]-RefRovxyz[i];
                 ecef2enu(RefRovblh, dxyz, denu); /*����õ�denu*/
                 for (i=0;i<3;i++) rtk->sol.enu[i]=denu[i];
+                for (i=0;i<3;i++) rtk->sol.xyz[i]=rtk->sol.rr[i];
             }
             else {
                 /*cal sol.rr  HPL VPL denu*/
@@ -1829,11 +1830,11 @@ static int relpos(rtk_t *rtk, const obsd_t *obs, int nu, int nr,
                     }
                     for (i=0;i<3;i++) rtk->sol.enu[i]=denu[i];
                     enu2ecef(RefRovblh, denu, dxyz);
-                    for (i=0;i<3;i++) rtk->sol.rr[i]=RefRovxyz[i]+dxyz[i];
-
+                    for (i=0;i<3;i++) rtk->sol.xyz[i]=RefRovxyz[i]+dxyz[i];
                 }
                 else {
                     for (i=0;i<3;i++) rtk->sol.enu[i]=denu[i];
+                    for (i=0;i<3;i++) rtk->sol.xyz[i]=rtk->sol.rr[i];
                 }
                 
             }
@@ -1909,11 +1910,12 @@ static int relpos(rtk_t *rtk, const obsd_t *obs, int nu, int nr,
                     }
                     for (i=0;i<3;i++) rtk->sol.enu[i]=denu[i];
                     enu2ecef(rtk->cc.RefRovblh, denu, dxyz);
-                    for (i=0;i<3;i++) rtk->sol.rr[i]=rtk->cc.RefRovxyz[i]+dxyz[i];
+                    for (i=0;i<3;i++) rtk->sol.xyz[i]=rtk->cc.RefRovxyz[i]+dxyz[i];
 
                 }
                 else {
                     for (i=0;i<3;i++) rtk->sol.enu[i]=denu[i];
+                    for (i=0;i<3;i++) rtk->sol.xyz[i]=rtk->sol.rr[i];
                 }            
             }
             
@@ -1989,11 +1991,12 @@ static int relpos(rtk_t *rtk, const obsd_t *obs, int nu, int nr,
                     }
                     for (i=0;i<3;i++) rtk->sol.enu[i]=denu[i];
                     enu2ecef(rtk->cc.RefRovblh, denu, dxyz);
-                    for (i=0;i<3;i++) rtk->sol.rr[i]=rtk->cc.RefRovxyz[i]+dxyz[i];
+                    for (i=0;i<3;i++) rtk->sol.xyz[i]=rtk->cc.RefRovxyz[i]+dxyz[i];
 
                 }
                 else {
                     for (i=0;i<3;i++) rtk->sol.enu[i]=denu[i];
+                    for (i=0;i<3;i++) rtk->sol.xyz[i]=rtk->sol.rr[i];
                 }  
             }
         }
