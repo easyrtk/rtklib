@@ -2142,7 +2142,7 @@ extern int rtkpos(rtk_t *rtk, const obsd_t *obs, int n, const nav_t *nav)
     
     /* rover position and time by single point positioning, skip if
      position variance smaller than threshold */
-    if (rtk->P[0]==0||rtk->P[0]>STD_PREC_VAR_THRESH) {    /*||rtk->P[0]>STD_PREC_VAR_THRESH*/
+    if (rtk->P[0]==0) {    /*||rtk->P[0]>STD_PREC_VAR_THRESH*/
         if (!pntpos(obs,nu,nav,&rtk->opt,&rtk->sol,NULL,rtk->ssat,msg)) {
             errmsg(rtk,"point pos error (%s)\n",msg);
             
