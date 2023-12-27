@@ -1734,7 +1734,7 @@ static int relpos(rtk_t *rtk, const obsd_t *obs, int nu, int nr,
 
 		rtk->sol.stat=stat;
 	}
-#else /*check*/
+#elif 0  /*check*/
 	if (stat!=SOLQ_NONE) {
         /*cal Refxyz & Refpos*/
         for (i=0;i<3;i++) RefRovxyz[i]=rtk->sol.RefRovxyz[i];
