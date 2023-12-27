@@ -2004,7 +2004,7 @@ static int relpos(rtk_t *rtk, const obsd_t *obs, int nu, int nr,
 	}
 
 #endif
-
+    if (stat!=SOLQ_NONE) rtk->sol.stat=stat;
 	return stat!=SOLQ_NONE;
 }
 /* initialize RTK control ------------------------------------------------------
