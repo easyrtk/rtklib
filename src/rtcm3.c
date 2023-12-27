@@ -2876,7 +2876,7 @@ extern int decode_rtcm3(rtcm_t *rtcm)
         case   12: ret=decode_ssr7(rtcm,SYS_GAL,0); break; /* tentative */
         case   13: ret=decode_ssr7(rtcm,SYS_QZS,0); break; /* tentative */
         case   14: ret=decode_ssr7(rtcm,SYS_CMP,0); break; /* tentative */
-        case 4054: ret=decode_type4054(rtcm); break;
+        /*case 4054: ret=decode_type4054(rtcm); break;*/
         case 4073: ret=decode_type4073(rtcm); break;
         case 4076: ret=decode_type4076(rtcm); break;
     }
