@@ -1161,20 +1161,20 @@ static int outecef(uint8_t *buff, const char *s, const sol_t *sol,
 	default:  soltype="float"; break;
 	}
 
-	/*p+=sprintf(p,"%s%s%14.4f%s%14.4f%s%14.4f"
+	p+=sprintf(p,"%s%s%14.4f%s%14.4f%s%14.4f"
 				 "%s%8.4f%s%8.4f%s%8.4f"
 				 "%s%8.4f%s%8.4f%s%3d%s%3d"
 				 "%s%3d%s%6.2f%s%6.1f%s%8.4f%s%6s",
 			   s,sep,sol->xyz[0],sep,sol->xyz[1],sep,sol->xyz[2],
 			   sep,sol->enu[0],sep,sol->enu[1],sep,sol->enu[2],
 			   sep,sol->HPL,sep,sol->VPL,sep,sol->HA,sep,sol->VA,
-			   sep,sol->ns,sep,sol->age,sep,sol->ratio,sep,sol->var,sep,soltype);*/
-   p+=sprintf(p,"%s%s%14.4f%s%14.4f%s%14.4f%s%3d%s%3d%s%8.4f%s%8.4f%s%8.4f%s"
+			   sep,sol->ns,sep,sol->age,sep,sol->ratio,sep,sol->var,sep,soltype);
+   /*p+=sprintf(p,"%s%s%14.4f%s%14.4f%s%14.4f%s%3d%s%3d%s%8.4f%s%8.4f%s%8.4f%s"
               "%8.4f%s%8.4f%s%8.4f%s%6.2f%s%6.1f",
               s,sep,sol->rr[0],sep,sol->rr[1],sep,sol->rr[2],sep,sol->stat,sep,
               sol->ns,sep,SQRT(sol->qr[0]),sep,SQRT(sol->qr[1]),sep,
               SQRT(sol->qr[2]),sep,sqvar(sol->qr[3]),sep,sqvar(sol->qr[4]),sep,
-              sqvar(sol->qr[5]),sep,sol->age,sep,sol->ratio);
+              sqvar(sol->qr[5]),sep,sol->age,sep,sol->ratio);*/
     
     if (opt->outvel) { /* output velocity */
         p+=sprintf(p,"%s%10.5f%s%10.5f%s%10.5f%s%9.5f%s%8.5f%s%8.5f%s%8.5f%s"
