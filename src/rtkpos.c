@@ -2142,7 +2142,8 @@ extern int rtkpos(rtk_t *rtk, const obsd_t *obs, int n, const nav_t *nav)
     
     /* rover position and time by single point positioning, skip if
      position variance smaller than threshold */
-    if (rtk->P[0]==0) {    /*||rtk->P[0]>STD_PREC_VAR_THRESH*/
+    /*||rtk->P[0]>STD_PREC_VAR_THRESH*/
+    /*if (rtk->P[0]==0) {   
         if (!pntpos(obs,nu,nav,&rtk->opt,&rtk->sol,NULL,rtk->ssat,msg)) {
             errmsg(rtk,"point pos error (%s)\n",msg);
             
@@ -2151,8 +2152,16 @@ extern int rtkpos(rtk_t *rtk, const obsd_t *obs, int n, const nav_t *nav)
                 return 0;
             }
         }
-    }else rtk->sol.time=obs[0].time;
+    }else rtk->sol.time=obs[0].time;*/
     /*rtk->sol.time=obs[0].time;*/
+    if (!pntpos(obs,nu,nav,&rtk->opt,&rtk->sol,NULL,rtk->ssat,msg)) {
+        errmsg(rtk,"point pos error (%s)\n",msg);
+        
+        if (!rtk->opt.dynamics) {
+            outsolstat(rtk);
+            return 0;
+        }
+    }
     if (time.time!=0) rtk->tt=timediff(rtk->sol.time,time);
     
     /* single point positioning */
