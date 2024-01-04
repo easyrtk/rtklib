@@ -784,7 +784,7 @@ static int UnifySignalType(int nSystem, BYTE bPcode, int *nSignalType, int *code
 		{
 			*nSignalType = GPS_C2W;
 			nFreq = 1;
-			*codeType = 19;
+			*codeType = 20;
 		}
 		else if (*nSignalType == 2)
 		{
@@ -899,18 +899,22 @@ static int UnifySignalType(int nSystem, BYTE bPcode, int *nSignalType, int *code
 			nFreq = 4;
 			*codeType = 58;
 		}
-		//else if (*nSignalType == 5)
-		//{
-		//	*nSignalType = CMP_C7P;
-		//}
+		else if (*nSignalType == 5)
+		{
+			*nSignalType = CMP_C7P;
+			nFreq = 5;
+			*codeType = 62;
+		}
 		//////else if (*nSignalType==6)
 		//////{
 		//////	*nSignalType = CMP_C6A;//????
 		//////}
-		//else if (*nSignalType == 7)
-		//{
-		//	*nSignalType = CMP_C8P;
-		//}
+		else if (*nSignalType == 7)
+		{
+			*nSignalType = CMP_C8P;
+			nFreq = 6;
+			*codeType = 65;
+		}
 		else
 		{
 			*nSignalType = -1;
@@ -922,33 +926,33 @@ static int UnifySignalType(int nSystem, BYTE bPcode, int *nSignalType, int *code
 
 		if (*nSignalType == 0)
 		{
-            *nSignalType = GAL_C1X;
+			*nSignalType = GAL_C1X;
 			nFreq = 0;
-            *codeType = 12;
+			*codeType = 12;
 		}
 		else if (*nSignalType == 1)
 		{
-            *nSignalType = GAL_C5X;
+			*nSignalType = GAL_C5X;
 			nFreq = 1;
-            *codeType = 26;
+			*codeType = 26;
 		}
 		else if (*nSignalType == 2)
 		{
-            *nSignalType = GAL_C7X;
+			*nSignalType = GAL_C7X;
 			nFreq = 2;
-            *codeType = 29;
+			*codeType = 29;
 		}
 		else if (*nSignalType == 3)
 		{
-            *nSignalType = GAL_C6C;
+			*nSignalType = GAL_C6C;
 			nFreq = 3;
-            *codeType = 60;
+			*codeType = 32;// TBC
 		}
 		else if (*nSignalType == 4)
 		{
-            *nSignalType = GAL_C8Q;
+			*nSignalType = GAL_C8Q;
 			nFreq = 4;
-            *codeType = 39;
+			*codeType = 38;
 		}
 	}
 	else if (nSystem == QZS_SYSTEM)
@@ -957,21 +961,21 @@ static int UnifySignalType(int nSystem, BYTE bPcode, int *nSignalType, int *code
 
 		if (*nSignalType == 0)
 		{
-            *nSignalType = QZS_C1C; /* L1CA */
+			*nSignalType = QZS_C1C; /* L1CA */
 			nFreq = 0;
-            *codeType = 1;
+			*codeType = 1;
 		}
 		else if (*nSignalType == 2)
 		{
-            *nSignalType = QZS_C2X; /* L2C */
+			*nSignalType = QZS_C2X; /* L2C */
 			nFreq = 1;
-            *codeType = 18;
+			*codeType = 18;
 		}
 		else if (*nSignalType == 3)
 		{
-            *nSignalType = QZS_C5Q; /* L5 */
+			*nSignalType = QZS_C5Q; /* L5 */
 			nFreq = 2;
-            *codeType = 25;
+			*codeType = 25;
 		}
 		//else if (*nSignalType == 4)
 		//{
@@ -982,15 +986,15 @@ static int UnifySignalType(int nSystem, BYTE bPcode, int *nSignalType, int *code
 	{
 		if (*nSignalType == 0)
 		{
-            *nSignalType = SBS_C1C;
+			*nSignalType = SBS_C1C;
 			nFreq = 0;
-            *codeType = 1;
+			*codeType = 1;
 		}
 		else if (*nSignalType == 3)
 		{
-            *nSignalType = SBS_C5I;
+			*nSignalType = SBS_C5I;
 			nFreq = 3;
-            *codeType = 24;
+			*codeType = 24;
 		}
 	}
 	else if (nSystem == NAVIC_SYSTEM)
