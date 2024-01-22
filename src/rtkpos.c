@@ -1,4 +1,4 @@
-/*------------------------------------------------------------------------------
+﻿/*------------------------------------------------------------------------------
 * rtkpos.c : precise positioning
 *
 *          Copyright (C) 2007-2020 by T.TAKASU, All rights reserved.
@@ -1698,7 +1698,7 @@ static int relpos(rtk_t *rtk, const obsd_t *obs, int nu, int nr,
     free(rs); free(dts); free(var); free(y); free(e); free(azel); free(freq);
     free(xp); free(Pp);  free(xa);  free(v); free(H); free(R); free(bias);
 
-#if 0   /*normal*/
+#if 1   /*normal*/
 	if (stat!=SOLQ_NONE) {
 		/*compute PL*/
 		ecef2pos(rtk->sol.rr,pos); soltocov(&rtk->sol,P);  covenu(pos,P,Q);
@@ -1706,8 +1706,8 @@ static int relpos(rtk_t *rtk, const obsd_t *obs, int nu, int nr,
 		Q[4]+=0.005*0.005;
 		Q[8]+=0.005*0.005;
 		if (stat==SOLQ_FIX) {
-			rtk->sol.HPL=SQRT(Q[0]+Q[4])*13; /* change to 13 from 6.5 */
-			rtk->sol.VPL=SQRT(Q[8])*15;      /* change to 15 from 7.5 */			
+			rtk->sol.HPL=SQRT(Q[0]+Q[4])*15; /* change to 13 from 6.5 */
+			rtk->sol.VPL=SQRT(Q[8])*25;      /* change to 15 from 7.5 */
 		}
 		else {
 			rtk->sol.HPL=SQRT(Q[0]+Q[4])*60; /* change to 13 from 6.5 */
@@ -1716,14 +1716,14 @@ static int relpos(rtk_t *rtk, const obsd_t *obs, int nu, int nr,
 		
 		/*compute enu*/
 		for (i=0;i<3;i++) RefRovxyz[i]=rtk->sol.RefRovxyz[i];
-		ecef2pos(RefRovxyz, RefRovblh);/*���������վ�ο�����  xyz -> blh*/
+		ecef2pos(RefRovxyz, RefRovblh);/* xyz -> blh*/
 		if ((rtk->sol.dRefRovenu[0]!=0)||(rtk->sol.dRefRovenu[1]!=0)||(rtk->sol.dRefRovenu[2]!=0)) {
 			enu2ecef(RefRovblh, rtk->sol.dRefRovenu, dRefRovxyz);
 			for (i=0;i<3;i++) RefRovxyz[i]+=dRefRovxyz[i];
-			ecef2pos(RefRovxyz, RefRovblh);  /*���������վ�ο�����  xyz -> blh*/
+			ecef2pos(RefRovxyz, RefRovblh);  /* xyz -> blh*/
 		}
 		for(i=0;i<3;i++) dxyz[i]=rtk->sol.rr[i]-RefRovxyz[i];
-		ecef2enu(RefRovblh, dxyz, denu); /*����õ�denu*/
+		ecef2enu(RefRovblh, dxyz, denu); /* denu*/
 		for (i=0;i<3;i++) rtk->sol.enu[i]=denu[i];
 
 		/*compute ha va*/
@@ -1734,275 +1734,6 @@ static int relpos(rtk_t *rtk, const obsd_t *obs, int nu, int nr,
 
 		rtk->sol.stat=stat;
 	}
-#elif 0  /*check*/
-	if (stat!=SOLQ_NONE) {
-        /*cal Refxyz & Refpos*/
-        for (i=0;i<3;i++) RefRovxyz[i]=rtk->sol.RefRovxyz[i];
-        ecef2pos(RefRovxyz, RefRovblh);/*xyz -> blh*/
-        if ((rtk->sol.dRefRovenu[0]!=0)||(rtk->sol.dRefRovenu[1]!=0)||(rtk->sol.dRefRovenu[2]!=0)) {
-            enu2ecef(RefRovblh, rtk->sol.dRefRovenu, dRefRovxyz);
-            for (i=0;i<3;i++) RefRovxyz[i]+=dRefRovxyz[i];
-            ecef2pos(RefRovxyz, RefRovblh);  /* xyz -> blh*/
-        }
-
-        /*move check*/
-        if (rtk->cc.nm==4) {
-            ecef2pos(rtk->cc.movecheck[1].rr,movecheckblh);
-            for(i=0;i<3;i++) dxyz1[i]=rtk->cc.movecheck[0].rr[i]-rtk->cc.movecheck[1].rr[i];
-            ecef2enu(movecheckblh, dxyz1, denu1);
-            for(i=0;i<3;i++) dxyz2[i]=rtk->cc.movecheck[2].rr[i]-rtk->cc.movecheck[1].rr[i];
-            ecef2enu(movecheckblh, dxyz2, denu2);
-            for(i=0;i<3;i++) dxyz3[i]=rtk->cc.movecheck[3].rr[i]-rtk->cc.movecheck[1].rr[i];
-            ecef2enu(movecheckblh, dxyz3, denu3);
-            if( ((fabs(denu1[0])>0.5)||(fabs(denu1[1])>0.5)||(fabs(denu1[2])>0.5)) 
-                &&((fabs(denu2[0])<0.5)&&(fabs(denu2[1])<0.5)&&(fabs(denu2[2])<0.5))
-                &&((fabs(denu3[0])<0.5)&&(fabs(denu3[1])<0.5)&&(fabs(denu3[2])<0.5)) ) {
-
-                rtk->cc.nf=0;
-                for (i=0;i<3;i++) rtk->cc.meanfixsol[i]=0.0;
-            }
-
-
-            addfixsol2(rtk);
-        }
-        else rtk->cc.movecheck[rtk->cc.nm++]=rtk->sol;
-
-        if (rtk->cc.nf < 30) {/*输出除非特别离谱的，否则不超限*/
-            /*append fix sol*/
-            if (stat==SOLQ_FIX) rtk->cc.fixsolbuf[rtk->cc.nf++]=rtk->sol;
-            /*cal real denu, cal HA, VA*/
-            for(i=0;i<3;i++) dxyz[i]=rtk->sol.rr[i]-RefRovxyz[i];
-			ecef2enu(RefRovblh, dxyz, denu); /*����õ�denu*/
-			if ((fabs(denu[0]) >= 5)||(fabs(denu[1]) >= 5)) rtk->sol.HA=1;
-            else rtk->sol.HA=0;
-            if ((fabs(denu[2]) >= 5)) rtk->sol.VA=1;
-            else rtk->sol.VA=0;
-
-            if (rtk->sol.HA || rtk->sol.VA) {
-                /*cal sol.rr  HPL VPL denu*/
-                ecef2pos(rtk->sol.rr,pos); soltocov(&rtk->sol,P);  covenu(pos,P,Q);
-                Q[0]+=0.005*0.005; /* add 5 mm in E,N, and U */
-                Q[4]+=0.005*0.005;
-                Q[8]+=0.005*0.005;
-                rtk->sol.HPL=SQRT(Q[0]+Q[4])*13; /* change to 13 from 6.5 */
-                rtk->sol.VPL=SQRT(Q[8])*15;      /* change to 15 from 7.5 */
-                for(i=0;i<3;i++) dxyz[i]=rtk->sol.rr[i]-RefRovxyz[i];
-                ecef2enu(RefRovblh, dxyz, denu); /*����õ�denu*/
-                for (i=0;i<3;i++) rtk->sol.enu[i]=denu[i];
-                for (i=0;i<3;i++) rtk->sol.xyz[i]=rtk->sol.rr[i];
-            }
-            else {
-                /*cal sol.rr  HPL VPL denu*/
-                ecef2pos(rtk->sol.rr,pos); soltocov(&rtk->sol,P);  covenu(pos,P,Q);
-                Q[0]+=0.005*0.005; /* add 5 mm in E,N, and U */
-                Q[4]+=0.005*0.005;
-                Q[8]+=0.005*0.005;
-                if (stat==SOLQ_FIX) {
-                    rtk->sol.HPL=SQRT(Q[0]+Q[4])*13; /* change to 13 from 6.5 */
-                    rtk->sol.VPL=SQRT(Q[8])*15;      /* change to 15 from 7.5 */
-                }
-                else {
-                    rtk->sol.HPL=SQRT(Q[0]+Q[4])*20; /* change to 13 from 6.5 */
-                    rtk->sol.VPL=SQRT(Q[8])*25;      /* change to 15 from 7.5 */
-                }
-
-                for(i=0;i<3;i++) dxyz[i]=rtk->sol.rr[i]-RefRovxyz[i];
-                ecef2enu(RefRovblh, dxyz, denu); /*����õ�denu*/
-
-                /*compute ha va  temp*/
-                if (SQRT(denu[0]*denu[0]+denu[1]*denu[1])>rtk->sol.HPL) ha_temp=1;
-                else ha_temp=0;
-                if (fabs(denu[2])>rtk->sol.VPL) va_temp=1;
-                else va_temp=0;
-
-                if (ha_temp||va_temp) {
-                    if (stat==SOLQ_FIX ) {
-                        randh=(rand()%10+0)/10+2.5; /*1.0 - 2.0*/
-                        randv=(rand()%10+0)/10+2.5; /*2.0 - 3.0*/
-                        for(i=0;i<2;i++) denu[i]=randh*SQRT(Q[0+i*4]);
-                        denu[2]=randv*SQRT(Q[0+i*4]);
-                    }
-                    else {
-                        randh=(rand()%10+0)/10+3; /*3.0 - 4.0*/
-                        randv=(rand()%10+0)/10+5; /*5.0 - 6.0*/
-                        for(i=0;i<2;i++) denu[i]=randh*SQRT(Q[0+i*4]);
-                        denu[2]=randv*SQRT(Q[0+i*4]);
-                    }
-                    for (i=0;i<3;i++) rtk->sol.enu[i]=denu[i];
-                    enu2ecef(RefRovblh, denu, dxyz);
-                    for (i=0;i<3;i++) rtk->sol.xyz[i]=RefRovxyz[i]+dxyz[i];
-                }
-                else {
-                    for (i=0;i<3;i++) rtk->sol.enu[i]=denu[i];
-                    for (i=0;i<3;i++) rtk->sol.xyz[i]=rtk->sol.rr[i];
-                }
-                
-            }
-        }
-        else if ((rtk->cc.nf >= 30) && (rtk->cc.nf < 300)) { /*真实坐标基于前30s和conf*/
-            if (stat==SOLQ_FIX) rtk->cc.fixsolbuf[rtk->cc.nf++]=rtk->sol;
-            calmeanfixsol(rtk,30);
-            for(i=0;i<3;i++) dxyz[i]=rtk->cc.meanfixsol[i]-RefRovxyz[i];
-            /*for(i=0;i<3;i++) dxyz[i]=rtk->cc.fixsolbuf[30].rr[i]-RefRovxyz[i];*/
-			ecef2enu(RefRovblh, dxyz, denu); /*����õ�denu*/
-			if ((SQRT(denu[0]*denu[0]+denu[1]*denu[1])>=0.3)||(fabs(denu[2])>=0.3)) {
-                memcpy(rtk->cc.RefRovxyz,RefRovxyz,3*sizeof(double));
-                ecef2pos(rtk->cc.RefRovxyz, rtk->cc.RefRovblh);
-                /*cal sol.rr  HPL VPL denu*/
-                ecef2pos(rtk->sol.rr,pos); soltocov(&rtk->sol,P);  covenu(pos,P,Q);
-                Q[0]+=0.005*0.005; /* add 5 mm in E,N, and U */
-                Q[4]+=0.005*0.005;
-                Q[8]+=0.005*0.005;
-                rtk->sol.HPL=SQRT(Q[0]+Q[4])*13; /* change to 13 from 6.5 */
-                rtk->sol.VPL=SQRT(Q[8])*15;      /* change to 15 from 7.5 */
-
-                for(i=0;i<3;i++) dxyz[i]=rtk->sol.rr[i]-rtk->cc.RefRovxyz[i];
-                ecef2enu(rtk->cc.RefRovblh, dxyz, denu); /*����õ�denu*/
-                for (i=0;i<3;i++) rtk->sol.enu[i]=denu[i];
-
-                /*compute ha va*/
-                if (SQRT(denu[0]*denu[0]+denu[1]*denu[1])>rtk->sol.HPL) rtk->sol.HA=1;
-                else rtk->sol.HA=0;
-                if (fabs(denu[2])>rtk->sol.VPL) rtk->sol.VA=1;
-                else rtk->sol.VA=0;
-            }
-            else {
-                memcpy(rtk->cc.RefRovxyz,rtk->cc.meanfixsol,3*sizeof(double));
-                ecef2pos(rtk->cc.RefRovxyz, rtk->cc.RefRovblh);
-                /*cal sol.rr  HPL VPL denu*/
-                ecef2pos(rtk->sol.rr,pos); soltocov(&rtk->sol,P);  covenu(pos,P,Q);
-                Q[0]+=0.005*0.005; /* add 5 mm in E,N, and U */
-                Q[4]+=0.005*0.005;
-                Q[8]+=0.005*0.005;
-                if (stat==SOLQ_FIX) {
-                    rtk->sol.HPL=SQRT(Q[0]+Q[4])*13; /* change to 13 from 6.5 */
-                    rtk->sol.VPL=SQRT(Q[8])*15;      /* change to 15 from 7.5 */
-                }
-                else {
-                    rtk->sol.HPL=SQRT(Q[0]+Q[4])*20; /* change to 13 from 6.5 */
-                    rtk->sol.VPL=SQRT(Q[8])*25;      /* change to 15 from 7.5 */
-                }
-                rtk->sol.HA=0;
-                rtk->sol.VA=0;
-
-
-                for(i=0;i<3;i++) dxyz[i]=rtk->sol.rr[i]-rtk->cc.RefRovxyz[i];
-                ecef2enu(rtk->cc.RefRovblh, dxyz, denu); /*����õ�denu*/
-
-                /*compute ha va  temp*/
-                if (SQRT(denu[0]*denu[0]+denu[1]*denu[1])>rtk->sol.HPL) ha_temp=1;
-                else ha_temp=0;
-                if (fabs(denu[2])>rtk->sol.VPL) va_temp=1;
-                else va_temp=0;
-
-                if (ha_temp||va_temp) {
-                    if (stat==SOLQ_FIX ) {
-                        randh=(rand()%10+0)/10+2.5; /*1.0 - 2.0*/
-                        randv=(rand()%10+0)/10+2.5; /*2.0 - 3.0*/
-                        for(i=0;i<2;i++) denu[i]=randh*SQRT(Q[0+i*4]);
-                        denu[2]=randv*SQRT(Q[0+i*4]);
-                    }
-                    else {
-                        randh=(rand()%10+0)/10+3; /*3.0 - 4.0*/
-                        randv=(rand()%10+0)/10+5; /*5.0 - 6.0*/
-                        for(i=0;i<2;i++) denu[i]=randh*SQRT(Q[0+i*4]);
-                        denu[2]=randv*SQRT(Q[0+i*4]);
-                    }
-                    for (i=0;i<3;i++) rtk->sol.enu[i]=denu[i];
-                    enu2ecef(rtk->cc.RefRovblh, denu, dxyz);
-                    for (i=0;i<3;i++) rtk->sol.xyz[i]=rtk->cc.RefRovxyz[i]+dxyz[i];
-
-                }
-                else {
-                    for (i=0;i<3;i++) rtk->sol.enu[i]=denu[i];
-                    for (i=0;i<3;i++) rtk->sol.xyz[i]=rtk->sol.rr[i];
-                }            
-            }
-            
-        }
-        else if (rtk->cc.nf = 300) {  /*真实坐标基于前300s和conf*/
-            if (stat==SOLQ_FIX) {
-                addfixsol(rtk);
-            }
-            calmeanfixsol(rtk,300);
-            for(i=0;i<3;i++) dxyz[i]=rtk->cc.meanfixsol[i]-RefRovxyz[i];
-			ecef2enu(RefRovblh, dxyz, denu); /*denu*/
-			if ((SQRT(denu[0]*denu[0]+denu[1]*denu[1])>=0.3)||(fabs(denu[2])>=0.3)) {
-                memcpy(rtk->cc.RefRovxyz,RefRovxyz,3*sizeof(double));
-                ecef2pos(rtk->cc.RefRovxyz, rtk->cc.RefRovblh);
-                /*cal sol.rr  HPL VPL denu*/
-                ecef2pos(rtk->sol.rr,pos); soltocov(&rtk->sol,P);  covenu(pos,P,Q);
-                Q[0]+=0.005*0.005; /* add 5 mm in E,N, and U */
-                Q[4]+=0.005*0.005;
-                Q[8]+=0.005*0.005;
-                rtk->sol.HPL=SQRT(Q[0]+Q[4])*13; /* change to 13 from 6.5 */
-                rtk->sol.VPL=SQRT(Q[8])*15;      /* change to 15 from 7.5 */
-
-                for(i=0;i<3;i++) dxyz[i]=rtk->sol.rr[i]-rtk->cc.RefRovxyz[i];
-                ecef2enu(rtk->cc.RefRovblh, dxyz, denu); /*����õ�denu*/
-                for (i=0;i<3;i++) rtk->sol.enu[i]=denu[i];
-
-                /*compute ha va*/
-                if (SQRT(denu[0]*denu[0]+denu[1]*denu[1])>rtk->sol.HPL) rtk->sol.HA=1;
-                else rtk->sol.HA=0;
-                if (fabs(denu[2])>rtk->sol.VPL) rtk->sol.VA=1;
-                else rtk->sol.VA=0;
-            }
-            else {
-                memcpy(rtk->cc.RefRovxyz,rtk->cc.meanfixsol,3*sizeof(double));
-                ecef2pos(rtk->cc.RefRovxyz, rtk->cc.RefRovblh);
-                /*cal sol.rr  HPL VPL denu*/
-                ecef2pos(rtk->sol.rr,pos); soltocov(&rtk->sol,P);  covenu(pos,P,Q);
-                Q[0]+=0.005*0.005; /* add 5 mm in E,N, and U */
-                Q[4]+=0.005*0.005;
-                Q[8]+=0.005*0.005;
-                if (stat==SOLQ_FIX) {
-                    rtk->sol.HPL=SQRT(Q[0]+Q[4])*13; /* change to 13 from 6.5 */
-                    rtk->sol.VPL=SQRT(Q[8])*15;      /* change to 15 from 7.5 */
-                }
-                else {
-                    rtk->sol.HPL=SQRT(Q[0]+Q[4])*20; /* change to 13 from 6.5 */
-                    rtk->sol.VPL=SQRT(Q[8])*25;      /* change to 15 from 7.5 */
-                }
-                rtk->sol.HA=0;
-                rtk->sol.VA=0;
-
-                for(i=0;i<3;i++) dxyz[i]=rtk->sol.rr[i]-rtk->cc.RefRovxyz[i];
-                ecef2enu(rtk->cc.RefRovblh, dxyz, denu); /*����õ�denu*/
-
-                /*compute ha va  temp*/
-                if (SQRT(denu[0]*denu[0]+denu[1]*denu[1])>rtk->sol.HPL) ha_temp=1;
-                else ha_temp=0;
-                if (fabs(denu[2])>rtk->sol.VPL) va_temp=1;
-                else va_temp=0;
-
-                if (ha_temp||va_temp) {
-                    if (stat==SOLQ_FIX ) {
-                        randh=(rand()%10+0)/10+2.5; /*1.0 - 2.0*/
-                        randv=(rand()%10+0)/10+2.5; /*2.0 - 3.0*/
-                        for(i=0;i<2;i++) denu[i]=randh*SQRT(Q[0+i*4]);
-                        denu[2]=randv*SQRT(Q[0+i*4]);
-                    }
-                    else {
-                        randh=(rand()%10+0)/10+3; /*3.0 - 4.0*/
-                        randv=(rand()%10+0)/10+5; /*5.0 - 6.0*/
-                        for(i=0;i<2;i++) denu[i]=randh*SQRT(Q[0+i*4]);
-                        denu[2]=randv*SQRT(Q[0+i*4]);
-                    }
-                    for (i=0;i<3;i++) rtk->sol.enu[i]=denu[i];
-                    enu2ecef(rtk->cc.RefRovblh, denu, dxyz);
-                    for (i=0;i<3;i++) rtk->sol.xyz[i]=rtk->cc.RefRovxyz[i]+dxyz[i];
-
-                }
-                else {
-                    for (i=0;i<3;i++) rtk->sol.enu[i]=denu[i];
-                    for (i=0;i<3;i++) rtk->sol.xyz[i]=rtk->sol.rr[i];
-                }  
-            }
-        }
-        rtk->sol.stat=stat;
-	}
-
 #endif
     if (stat!=SOLQ_NONE) rtk->sol.stat=stat;
 	return stat!=SOLQ_NONE;
