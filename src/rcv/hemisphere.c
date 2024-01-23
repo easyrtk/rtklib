@@ -766,10 +766,10 @@ static double GetURAFromSISA(unsigned char uSISA)
 	return dURA;
 }
 
-static int UnifySignalType(int nSystem, BYTE bPcode, int *nSignalType, int *codeType)
+static int UnifySignalType(int nSystem, BYTE bPcode, int *nSignalType, int *codeType, double *phase_bias)
 {
 	int nFreq = 1;
-
+	*phase_bias = 0;
 	if (nSystem == GPS_SYSTEM)
 	{
 		nFreq = *nSignalType + 1;
@@ -784,24 +784,26 @@ static int UnifySignalType(int nSystem, BYTE bPcode, int *nSignalType, int *code
 		{
 			*nSignalType = GPS_C2W;
 			nFreq = 1;
-			*codeType = 20;
+			*codeType = CODE_L2W;
 		}
 		else if (*nSignalType == 2)
 		{
 			*nSignalType = GPS_C2S; 
 			nFreq = 2;
-			*codeType = 16;
+			*codeType = CODE_L2S;
 		}
 		else if (*nSignalType == 3)
 		{
 			*nSignalType = GPS_C5Q;
 			nFreq = 3;
-			*codeType = 25;
+			*codeType = CODE_L5Q;
 		}
-		/*else if (*nSignalType == 4)
+		else if (*nSignalType == 4)
 		{
 			*nSignalType = GPS_C1S;
-		}*/
+			nFreq = 4;
+			*codeType = CODE_L1S;
+		}
 
 	}
 	else if (nSystem == GLO_SYSTEM)
@@ -831,13 +833,13 @@ static int UnifySignalType(int nSystem, BYTE bPcode, int *nSignalType, int *code
 				{
 					*nSignalType = GLO_C1P;
 					nFreq = 0;
-					*codeType = 2;
+					*codeType = CODE_L1P;
 				}
 				else if (*nSignalType == 1)
 				{
 					*nSignalType = GLO_C2P;
 					nFreq = 1;
-					*codeType = 19;
+					*codeType = CODE_L2P;
 				}
 			}
 			else
@@ -846,13 +848,13 @@ static int UnifySignalType(int nSystem, BYTE bPcode, int *nSignalType, int *code
 				{
 					*nSignalType = GLO_C1C;
 					nFreq = 0;
-					*codeType = 1;
+					*codeType = CODE_L1C;
 				}
 				else if (*nSignalType == 1)
 				{
 					*nSignalType = GLO_C2C;
 					nFreq = 1;
-					*codeType = 14;
+					*codeType = CODE_L2C;
 				}
 			}
 		}
@@ -873,37 +875,38 @@ static int UnifySignalType(int nSystem, BYTE bPcode, int *nSignalType, int *code
 		{
 			*nSignalType = CMP_C2I;
 			nFreq = 0;
-			*codeType = 40;
+			*codeType = CODE_L2I;
 		}
 		else if (*nSignalType == 1)
 		{
 			*nSignalType = CMP_C7I;
 			nFreq = 1;
-			*codeType = 27;
+			*codeType = CODE_L7I;
 		}
 		else if (*nSignalType == 2)
 		{
 			*nSignalType = CMP_C6I;
 			nFreq = 2;
-			*codeType = 42;
+			*codeType = CODE_L6I;
 		}
 		else if (*nSignalType == 3)
 		{
 			*nSignalType = CMP_C1P;//B1C[2019/08/29]
 			nFreq = 3;
-			*codeType = 2;
+			*codeType = CODE_L1P; /* need to add +0.25 */
+			*phase_bias = 0.25;
 		}
 		else if (*nSignalType == 4)
 		{
-			*nSignalType = CMP_C5P;
+			*nSignalType = CMP_C5D;
 			nFreq = 4;
-			*codeType = 58;
+			*codeType = CODE_L5D; /* add +0.25 to get 5P (match hemi2rnx) */
 		}
 		else if (*nSignalType == 5)
 		{
-			*nSignalType = CMP_C7P;
+			*nSignalType = CMP_C7D;
 			nFreq = 5;
-			*codeType = 62;
+			*codeType = CODE_L7D; /* add +0.25 to get 7P (match hemi2rnx) */
 		}
 		//////else if (*nSignalType==6)
 		//////{
@@ -911,9 +914,9 @@ static int UnifySignalType(int nSystem, BYTE bPcode, int *nSignalType, int *code
 		//////}
 		else if (*nSignalType == 7)
 		{
-			*nSignalType = CMP_C8P;
+			*nSignalType = CMP_C8D;
 			nFreq = 6;
-			*codeType = 65;
+			*codeType = CODE_L8D; /* add +0.25 to get 8P (match hemi2rnx)*/
 		}
 		else
 		{
@@ -928,31 +931,35 @@ static int UnifySignalType(int nSystem, BYTE bPcode, int *nSignalType, int *code
 		{
 			*nSignalType = GAL_C1X;
 			nFreq = 0;
-			*codeType = 12;
+			*codeType = CODE_L1C; /* add 0.5 to get 1C */
+			*phase_bias = 0.5;
 		}
 		else if (*nSignalType == 1)
 		{
 			*nSignalType = GAL_C5X;
 			nFreq = 1;
-			*codeType = 26;
+			*codeType = CODE_L5Q; /* add -0.25 to get 5Q */
+			*phase_bias = -0.25;
 		}
 		else if (*nSignalType == 2)
 		{
 			*nSignalType = GAL_C7X;
 			nFreq = 2;
-			*codeType = 29;
+			*codeType = CODE_L7Q; /* add -0.25 to get 7Q */
+			*phase_bias = -0.25;
 		}
 		else if (*nSignalType == 3)
 		{
 			*nSignalType = GAL_C6C;
 			nFreq = 3;
-			*codeType = 32;// TBC
+			*codeType = CODE_L6C; /* add -0.50 to get 6C */
 		}
 		else if (*nSignalType == 4)
 		{
 			*nSignalType = GAL_C8Q;
 			nFreq = 4;
-			*codeType = 38;
+			*codeType = CODE_L8Q; /* add -0.25 to get 8Q */
+			*phase_bias = -0.25;
 		}
 	}
 	else if (nSystem == QZS_SYSTEM)
@@ -963,24 +970,26 @@ static int UnifySignalType(int nSystem, BYTE bPcode, int *nSignalType, int *code
 		{
 			*nSignalType = QZS_C1C; /* L1CA */
 			nFreq = 0;
-			*codeType = 1;
+			*codeType = CODE_L1C;
 		}
 		else if (*nSignalType == 2)
 		{
 			*nSignalType = QZS_C2X; /* L2C */
 			nFreq = 1;
-			*codeType = 18;
+			*codeType = CODE_L2X;
 		}
 		else if (*nSignalType == 3)
 		{
 			*nSignalType = QZS_C5Q; /* L5 */
 			nFreq = 2;
-			*codeType = 25;
+			*codeType = CODE_L5Q;
 		}
-		//else if (*nSignalType == 4)
-		//{
-		//	*nSignalType = QZS_C1S; /* L1C */
-		//}
+		else if (*nSignalType == 4)
+		{
+			*nSignalType = QZS_C1S; /* L1C */
+			nFreq = 3;
+			*codeType = CODE_L1S;
+		}
 	}
 	else if (nSystem == SBS_SYSTEM)
 	{
@@ -988,13 +997,13 @@ static int UnifySignalType(int nSystem, BYTE bPcode, int *nSignalType, int *code
 		{
 			*nSignalType = SBS_C1C;
 			nFreq = 0;
-			*codeType = 1;
+			*codeType = CODE_L1C;
 		}
 		else if (*nSignalType == 3)
 		{
 			*nSignalType = SBS_C5I;
 			nFreq = 3;
-			*codeType = 24;
+			*codeType = CODE_L5I;
 		}
 	}
 	else if (nSystem == NAVIC_SYSTEM)
@@ -1423,8 +1432,9 @@ extern int readGnssObs(raw_t *raw)//unsigned char* buff, int nStart, obs_t *obs
 		int nSignalType = item.m_awChanSignalSYS[i] >> 4 & 0xF;   
 		BYTE bPcode = item.m_awChanSignalSYS[i] >> 13 & 0x1;
 
+		double phase_bias = 0;
 		int codeType = 0;
-		int nL = UnifySignalType(nSystem, bPcode, &nSignalType, &codeType);     
+		int nL = UnifySignalType(nSystem, bPcode, &nSignalType, &codeType, &phase_bias);
 
 		if (nSignalType < 0 || codeType <= 0 || nL >=(NFREQ+NEXOBS)) //[2021/08/11]
 		{
@@ -1453,6 +1463,7 @@ extern int readGnssObs(raw_t *raw)//unsigned char* buff, int nStart, obs_t *obs
 		GetObsValue(nSystem, item.m_asObs[i], nSignalType, &block);
 		block.dPsr += dRoughPsr;
 		block.dPhase = AdjustPhase(block.dPhase, block.dPsr / lam);
+		block.dPhase += phase_bias; /* add phase bias */
 
 		// index
 		int Index = SatExistOrNot(sys, nSVID, obs);

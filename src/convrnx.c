@@ -714,6 +714,131 @@ static void resolve_halfc(const strfile_t *str, obsd_t *data, int n)
         data[i].LLI[j]&=~(LLI_HALFA|LLI_HALFS);
     }
 }
+#ifdef ORTCM
+static FILE* fRTCM = NULL;
+static rtcm_t rtcm_out = { 0 };
+static long numofepoch = 0;
+/* write rtcm3 msm to stream -------------------------------------------------*/
+static int write_rtcm3_msm(rtcm_t* out, int msg, int sync, FILE *fOUT)
+{
+    obsd_t* data, buff[MAXOBS];
+    int i, j, n, ns, sys, nobs, code, nsat = 0, nsig = 0, nmsg, mask[MAXCODE] = { 0 }, nlen = 0;
+
+    if (1071 <= msg && msg <= 1077) sys = SYS_GPS;
+    else if (1081 <= msg && msg <= 1087) sys = SYS_GLO;
+    else if (1091 <= msg && msg <= 1097) sys = SYS_GAL;
+    else if (1101 <= msg && msg <= 1107) sys = SYS_SBS;
+    else if (1111 <= msg && msg <= 1117) sys = SYS_QZS;
+    else if (1121 <= msg && msg <= 1127) sys = SYS_CMP;
+    else return nlen;
+
+    data = out->obs.data;
+    nobs = out->obs.n;
+
+    /* count number of satellites and signals */
+    for (i = 0; i < nobs && i < MAXOBS; i++) {
+        if (satsys(data[i].sat, NULL) != sys) continue;
+        nsat++;
+        for (j = 0; j < NFREQ + NEXOBS; j++) {
+            if (!(code = data[i].code[j]) || mask[code - 1]) continue;
+            mask[code - 1] = 1;
+            nsig++;
+        }
+    }
+    if (nsig <= 0 || nsig > 64) return nlen;
+
+    /* pack data to multiple messages if nsat x nsig > 64 */
+    ns = 64 / nsig;         /* max number of sats in a message */
+    nmsg = (nsat - 1) / ns + 1; /* number of messages */
+
+    out->obs.data = buff;
+
+    for (i = j = 0; i < nmsg; i++) {
+        for (n = 0; n < ns && j < nobs && j < MAXOBS; j++) {
+            if (satsys(data[j].sat, NULL) != sys) continue;
+            out->obs.data[n++] = data[j];
+        }
+        out->obs.n = n;
+
+        if (gen_rtcm3(out, msg, 0, i < nmsg - 1 ? 1 : sync) && out->nbyte > 0)
+        {
+            if (fOUT)
+            {
+                fwrite(out->buff, sizeof(char), out->nbyte, fOUT);
+                fflush(fOUT);
+            }
+            nlen += out->nbyte;
+        }
+    }
+    out->obs.data = data;
+    out->obs.n = nobs;
+    return nlen;
+}
+static int write_rtcm_output(obs_t *obs)
+{
+    int i = 0, j = 0, nlen = 0;
+    int ng = 0, nr = 0, ne = 0, ns = 0, nj = 0, nc = 0;
+
+    if (numofepoch == 0)
+    {
+        init_rtcm(&rtcm_out);
+    }
+    ++numofepoch;
+    if (!fRTCM) fRTCM = fopen("temp_output.rtcm3", "wb");
+
+    memset(rtcm_out.obs.data, 0, sizeof(obsd_t) * MAXOBS);
+    rtcm_out.obs.n = 0;
+
+    for (i = 0; i < obs->n; ++i)
+    {
+        obsd_t* obsd = obs->data + i;
+        int wn = 0, prn = 0;
+        double ws = time2gpst(obsd->time, &wn);
+        char id[4] = { 0 };
+        satno2id(obsd->sat, id);
+        char sys = satsys(obsd->sat, &prn);
+        if (sys == SYS_GPS)
+            ++ng;
+        else if (sys == SYS_GLO)
+            ++nr;
+        else if (sys == SYS_GAL)
+            ++ne;
+        //else if (sys == SYS_SBS)
+        //    ++ns;
+        else if (sys == SYS_QZS)
+            ++nj;
+        else if (sys == SYS_CMP)
+            ++nc;
+
+        obsd_t* obsd_new = rtcm_out.obs.data + rtcm_out.obs.n;
+        memcpy(obsd_new, obsd, sizeof(obsd_t));
+
+        if (rtcm_out.obs.n == 0)
+        {
+            rtcm_out.time = obsd->time;
+        }
+
+        ++rtcm_out.obs.n;
+    }
+
+    if (rtcm_out.obs.n > 0)
+    {
+        if (ng > 0 && (nlen = write_rtcm3_msm(&rtcm_out, 1077, (nr + ne + ns + nj + nc) > 0, fRTCM)) > 0) /* GPS */
+            ng = ng;
+        if (nr > 0 && (nlen = write_rtcm3_msm(&rtcm_out, 1087, (ne + ns + nj + nc) > 0, fRTCM)) > 0)/* GLO */
+            nr = nr;
+        if (ne > 0 && (nlen = write_rtcm3_msm(&rtcm_out, 1097, (ns + nj + nc) > 0, fRTCM)) > 0) /* GAL */
+            ne = ne;
+        if (ns > 0 && (nlen = write_rtcm3_msm(&rtcm_out, 1107, (nj + nc) > 0, fRTCM)) > 0) /* SBAS */
+            ns = ns;
+        if (nj > 0 && (nlen = write_rtcm3_msm(&rtcm_out, 1117, nc > 0, fRTCM)) > 0) /* QZS */
+            nj = nj;
+        if (nc > 0 && (nlen = write_rtcm3_msm(&rtcm_out, 1127, 0, fRTCM)) > 0) /* CMP */
+            nc = nc;
+    }
+    return 0;
+}
+#endif
 /* scan input files ----------------------------------------------------------*/
 static int scan_file(char **files, int nf, rnxopt_t *opt, strfile_t *str,
                      int *mask)
@@ -734,6 +859,21 @@ static int scan_file(char **files, int nf, rnxopt_t *opt, strfile_t *str,
             continue;
         }
         while ((type=input_strfile(str))>=-1) {
+#if ORTCM
+            if (type == 1)
+            {
+                for (i = 0; i < str->obs->n; i++) {
+                    sys = satsys(str->obs->data[i].sat, &prn);
+                    for (j = 0; j < NFREQ + NEXOBS; ++j)
+                    {
+                        if (str->obs->data[i].code[j] == 0) continue;
+                        printf("%s %3i %3i %3i %14.4f %14.4f %10.4f %i\n", time_str(str->obs->data[i].time, 3), sys, str->obs->data[i].code[j], prn, str->obs->data[i].P[j], str->obs->data[i].L[j], str->obs->data[i].D[j], str->obs->data[i].SNR[j]);
+                    }
+                }
+                i = i;
+                write_rtcm_output(str->obs);
+            }
+#endif
             if (opt->ts.time&&timediff(str->time,opt->ts)<-opt->ttol) continue;
             if (opt->te.time&&timediff(str->time,opt->te)>-opt->ttol) break;
             mask[m]=1; /* update file mask */
