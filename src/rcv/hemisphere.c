@@ -765,9 +765,21 @@ static double GetURAFromSISA(unsigned char uSISA)
 
 	return dURA;
 }
-
+/*
+*    GPS                GLO		           GAL	  	        BDS		       QZS
+* 0	 1C(L1CA)           1C(L1CA) 1P(L1P)   1C(E1C no data)	2I(B1I)        1C(L1CA)
+* 1  2W(L2 Z-Tracking)  2C(L2CA) 2P(L2P)   5Q(E5a_Q)        7I(B2I) 
+* 2  2S(L2C(M))                            7Q(E5b_Q)        6I(B3I)        2S(L2C(M)) 
+* 3  5Q(L5Q)                               6C(E6C)          1P(B1C_p)      5Q(L5Q)
+* 4  1L(L1C-P)                             8Q(E5a+b_Q)      5P(B2a_p)      1L(L1C(P))
+* 5                                                         7P(B2b_p)
+* 6                      
+* 7                                                         8P(B2a+b_p) 
+*/
 static int UnifySignalType(int nSystem, BYTE bPcode, int *nSignalType, int *codeType, double *phase_bias)
 {
+	/* nSignalType -> source signals */
+	/* codeType -> output signals */
 	int nFreq = 1;
 	*phase_bias = 0;
 	if (nSystem == GPS_SYSTEM)
@@ -778,7 +790,7 @@ static int UnifySignalType(int nSystem, BYTE bPcode, int *nSignalType, int *code
 		{
 			*nSignalType = GPS_C1C;
 			nFreq = 0;
-			*codeType = 1;
+			*codeType = CODE_L1C;
 		}
 		else if (*nSignalType == 1)
 		{
@@ -788,7 +800,7 @@ static int UnifySignalType(int nSystem, BYTE bPcode, int *nSignalType, int *code
 		}
 		else if (*nSignalType == 2)
 		{
-			*nSignalType = GPS_C2S; 
+			*nSignalType = GPS_C2S; /* need to check 2X or 2S */
 			nFreq = 2;
 			*codeType = CODE_L2S;
 		}
@@ -800,9 +812,9 @@ static int UnifySignalType(int nSystem, BYTE bPcode, int *nSignalType, int *code
 		}
 		else if (*nSignalType == 4)
 		{
-			*nSignalType = GPS_C1S;
+			*nSignalType = GPS_C1L;
 			nFreq = 4;
-			*codeType = CODE_L1S;
+			*codeType = CODE_L1L;
 		}
 
 	}
@@ -833,13 +845,15 @@ static int UnifySignalType(int nSystem, BYTE bPcode, int *nSignalType, int *code
 				{
 					*nSignalType = GLO_C1P;
 					nFreq = 0;
-					*codeType = CODE_L1P;
+					*codeType = CODE_L1C;
+					*phase_bias = 0.25;
 				}
 				else if (*nSignalType == 1)
 				{
 					*nSignalType = GLO_C2P;
 					nFreq = 1;
-					*codeType = CODE_L2P;
+					*codeType = CODE_L2C;
+					*phase_bias = 0.25;
 				}
 			}
 			else
@@ -893,20 +907,22 @@ static int UnifySignalType(int nSystem, BYTE bPcode, int *nSignalType, int *code
 		{
 			*nSignalType = CMP_C1P;//B1C[2019/08/29]
 			nFreq = 3;
-			*codeType = CODE_L1P; /* need to add +0.25 */
+			*codeType = CODE_L1D;
 			*phase_bias = 0.25;
 		}
 		else if (*nSignalType == 4)
 		{
-			*nSignalType = CMP_C5D;
+			*nSignalType = CMP_C5P;
 			nFreq = 4;
-			*codeType = CODE_L5D; /* add +0.25 to get 5P (match hemi2rnx) */
+			*codeType = CODE_L5D; 
+			*phase_bias = 0.25;
 		}
 		else if (*nSignalType == 5)
 		{
-			*nSignalType = CMP_C7D;
+			*nSignalType = CMP_C7P;
 			nFreq = 5;
-			*codeType = CODE_L7D; /* add +0.25 to get 7P (match hemi2rnx) */
+			*codeType = CODE_L7D; 
+			*phase_bias = 0.25;
 		}
 		//////else if (*nSignalType==6)
 		//////{
@@ -914,9 +930,10 @@ static int UnifySignalType(int nSystem, BYTE bPcode, int *nSignalType, int *code
 		//////}
 		else if (*nSignalType == 7)
 		{
-			*nSignalType = CMP_C8D;
+			*nSignalType = CMP_C8P;
 			nFreq = 6;
-			*codeType = CODE_L8D; /* add +0.25 to get 8P (match hemi2rnx)*/
+			*codeType = CODE_L8D; 
+			*phase_bias = 0.25;
 		}
 		else
 		{
@@ -929,37 +946,37 @@ static int UnifySignalType(int nSystem, BYTE bPcode, int *nSignalType, int *code
 
 		if (*nSignalType == 0)
 		{
-			*nSignalType = GAL_C1X;
+			*nSignalType = GAL_C1C;
 			nFreq = 0;
-			*codeType = CODE_L1C; /* add 0.5 to get 1C */
-			*phase_bias = 0.5;
+			*codeType = CODE_L1C;
+			/* *phase_bias = 0.5; */
 		}
 		else if (*nSignalType == 1)
 		{
-			*nSignalType = GAL_C5X;
+			*nSignalType = GAL_C5Q;
 			nFreq = 1;
-			*codeType = CODE_L5Q; /* add -0.25 to get 5Q */
-			*phase_bias = -0.25;
+			*codeType = CODE_L5Q;
+			/* *phase_bias = -0.25; */
 		}
 		else if (*nSignalType == 2)
 		{
-			*nSignalType = GAL_C7X;
+			*nSignalType = GAL_C7Q;
 			nFreq = 2;
-			*codeType = CODE_L7Q; /* add -0.25 to get 7Q */
-			*phase_bias = -0.25;
+			*codeType = CODE_L7Q;
+			/* *phase_bias = -0.25; */
 		}
 		else if (*nSignalType == 3)
 		{
 			*nSignalType = GAL_C6C;
 			nFreq = 3;
-			*codeType = CODE_L6C; /* add -0.50 to get 6C */
+			*codeType = CODE_L6C;
 		}
 		else if (*nSignalType == 4)
 		{
 			*nSignalType = GAL_C8Q;
 			nFreq = 4;
-			*codeType = CODE_L8Q; /* add -0.25 to get 8Q */
-			*phase_bias = -0.25;
+			*codeType = CODE_L8Q;
+			/* *phase_bias = -0.25; */
 		}
 	}
 	else if (nSystem == QZS_SYSTEM)
@@ -974,9 +991,9 @@ static int UnifySignalType(int nSystem, BYTE bPcode, int *nSignalType, int *code
 		}
 		else if (*nSignalType == 2)
 		{
-			*nSignalType = QZS_C2X; /* L2C */
+			*nSignalType = QZS_C2X; /* L2C ? need check 2X or 2S */
 			nFreq = 1;
-			*codeType = CODE_L2X;
+			*codeType = CODE_L2X; 
 		}
 		else if (*nSignalType == 3)
 		{
@@ -986,9 +1003,9 @@ static int UnifySignalType(int nSystem, BYTE bPcode, int *nSignalType, int *code
 		}
 		else if (*nSignalType == 4)
 		{
-			*nSignalType = QZS_C1S; /* L1C */
+			*nSignalType = QZS_C1L; /* L1C */
 			nFreq = 3;
-			*codeType = CODE_L1S;
+			*codeType = CODE_L1L;
 		}
 	}
 	else if (nSystem == SBS_SYSTEM)
