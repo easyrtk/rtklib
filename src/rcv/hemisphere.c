@@ -769,7 +769,7 @@ static double GetURAFromSISA(unsigned char uSISA)
 *    GPS                GLO		           GAL	  	        BDS		       QZS
 * 0	 1C(L1CA)           1C(L1CA) 1P(L1P)   1C(E1C no data)	2I(B1I)        1C(L1CA)
 * 1  2W(L2 Z-Tracking)  2C(L2CA) 2P(L2P)   5Q(E5a_Q)        7I(B2I) 
-* 2  2X(L2C(M+L))                            7Q(E5b_Q)        6I(B3I)        2X(L2C(M+L)) 
+* 2  2X(L2C(M+L))                          7Q(E5b_Q)        6I(B3I)        2X(L2C(M+L)) 
 * 3  5Q(L5Q)                               6C(E6C)          1P(B1C_p)      5Q(L5Q)
 * 4  1L(L1C-P)                             8Q(E5a+b_Q)      5P(B2a_p)      1L(L1C(P))
 * 5                                                         7P(B2b_p)
@@ -800,9 +800,10 @@ static int UnifySignalType(int nSystem, BYTE bPcode, int *nSignalType, int *code
 		}
 		else if (*nSignalType == 2)
 		{
-			*nSignalType = GPS_C2X; /* change from 2S to 2X */
+			*nSignalType = GPS_C2X; /* 2X */
 			nFreq = 2;
-			*codeType = CODE_L2X;
+			*codeType = CODE_L2L; /* output 2L */
+			*phase_bias = 0.0; /* no offset */
 		}
 		else if (*nSignalType == 3)
 		{
@@ -907,15 +908,15 @@ static int UnifySignalType(int nSystem, BYTE bPcode, int *nSignalType, int *code
 		{
 			*nSignalType = CMP_C1P;//B1C[2019/08/29]
 			nFreq = 3;
-			*codeType = CODE_L1D;
-			*phase_bias = 0.25;
+			*codeType = CODE_L1P;
+			*phase_bias = 0.0;
 		}
 		else if (*nSignalType == 4)
 		{
 			*nSignalType = CMP_C5P;
 			nFreq = 4;
-			*codeType = CODE_L5D; 
-			*phase_bias = 0.25;
+			*codeType = CODE_L5P; 
+			*phase_bias = 0.0;
 		}
 		else if (*nSignalType == 5)
 		{
@@ -932,8 +933,8 @@ static int UnifySignalType(int nSystem, BYTE bPcode, int *nSignalType, int *code
 		{
 			*nSignalType = CMP_C8P;
 			nFreq = 6;
-			*codeType = CODE_L8D; 
-			*phase_bias = 0.25;
+			*codeType = CODE_L8P; 
+			*phase_bias = 0.0;
 		}
 		else
 		{
@@ -991,9 +992,9 @@ static int UnifySignalType(int nSystem, BYTE bPcode, int *nSignalType, int *code
 		}
 		else if (*nSignalType == 2)
 		{
-			*nSignalType = QZS_C2X; /* L2C ? need check 2X or 2S */
+			*nSignalType = QZS_C2X; /* L2C 2X */
 			nFreq = 1;
-			*codeType = CODE_L2X; 
+			*codeType = CODE_L2L;  /* output 2L, no offset */
 		}
 		else if (*nSignalType == 3)
 		{
