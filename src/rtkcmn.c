@@ -740,7 +740,7 @@ extern double code2freq(int sys, uint8_t code, int fcn)
     return freq;
 }
 /* default glonass frequency table */
-static int default_glo_frq_table[] = { 1, -4, 05, 06, 01, -4, 05, 06, -2, -7, 00, -1, -2, -7, 00, -1, 04, -3, 03, 02, 04, -3, 03, 02, 0, -5 };
+static int default_glo_frq_table[] = { 1,-4,5,6,1,-4,5,6,-2,-7,0,-1,-2,-7,0,-1,4,-3,3,2,4,-3,3,2,-5,-6 };
 #ifndef MAX_GLO_PRN
 #define MAX_GLO_PRN (sizeof(default_glo_frq_table)/sizeof(int))
 #endif
