@@ -233,11 +233,11 @@ extern int input_rtcm3_type(rtcm_buff_t *rtcm, unsigned char data)
         ret = rtcm->sync?0:1;
         is_obs = 1;
     }
-    if (rtcm->type == 4054)
+    if (rtcm->type == 4049)
     {
-        rtcm->subtype = getbitu_(rtcm->buff,24+15     , 8); /* subtype */
-        rtcm->tow     = getbitu_(rtcm->buff,24+15+8   ,20); /* time */
-        rtcm->sync    = getbitu_(rtcm->buff,24+15+8+20, 1); /* sync */
+        rtcm->subtype = getbitu_(rtcm->buff,24+12+3     , 9); /* subtype */
+        rtcm->tow     = getbitu_(rtcm->buff,24+12+3+9   ,20); /* time */
+        rtcm->sync    = getbitu_(rtcm->buff,24+12+3+9+20, 1); /* sync */
     }
     if (is_obs)
     {
@@ -272,7 +272,15 @@ extern int input_rtcm3_type(rtcm_buff_t *rtcm, unsigned char data)
                 if (rtcm->cels[j]) rtcm->ncel++;
             }
         }
-#if 0 /*_WIN32*/
+#if 0
+		//printf("%10.3f,%4i,%4i,%4i,%4i,%4i,%4i", rtcm->tow, rtcm->type, nbyte, rtcm->len + 3, rtcm->ncel, rtcm->nsat, rtcm->nsig);
+        //for (j = 0; j < rtcm->nsig; ++j)
+        ///{
+        //    printf(",%2i", rtcm->sigs[j]);
+        //}
+        //printf("\n");
+#endif
+#if 0 //_WIN32
         printf("%10.3f,%4i,%4i,%4i,%4i,%4i,%4i,SAT:", rtcm->tow, rtcm->type, nbyte, rtcm->len + 3, rtcm->nsat, rtcm->nsig, rtcm->ncel);
         for (j = 0; j < 64; ++j)
         {
@@ -478,8 +486,8 @@ extern int encode_aid1 (uint8_t* buff, aid_sol_t *sol)
     setbitu_(buff,i, 6,0          ); i+= 6;
     setbitu_(buff,i,10,0          ); i+=10;
 
-    setbitu_(buff,i,12,4054   ); i+=12; /* message type */
-    setbitu_(buff,i, 2,1      ); i+= 2; /* version */
+    setbitu_(buff,i,12,4049   ); i+=12; /* message type */
+    setbitu_(buff,i, 3,1      ); i+= 3; /* version */
     setbitu_(buff,i, 9,1      ); i+= 9; /* subtype */
     setbitu_(buff,i,20,tow    ); i+=20; /* time */
 	setbitu_(buff,i, 1,sync   ); i+=1;  /* sync */
@@ -534,8 +542,8 @@ extern int encode_aid2 (uint8_t* buff, aid_ppl_t *ppl)
     setbitu_(buff,i, 6,0          ); i+= 6;
     setbitu_(buff,i,10,0          ); i+=10;
 
-    setbitu_(buff,i,12,4054   ); i+=12; /* message type */
-    setbitu_(buff,i, 2,1      ); i+= 2; /* version */
+    setbitu_(buff,i,12,4049   ); i+=12; /* message type */
+    setbitu_(buff,i, 3,1      ); i+= 3; /* version */
     setbitu_(buff,i, 9,2      ); i+= 9; /* subtype */
     setbitu_(buff,i,20,tow    ); i+=20; /* time */
 	setbitu_(buff,i, 1,sync   ); i+=1;  /* sync */
@@ -586,8 +594,8 @@ extern int encode_aid5 (uint8_t* buff, int idx, int rcv, double ws, double* blh)
     setbitu_(buff,i, 6,0          ); i+= 6;
     setbitu_(buff,i,10,0          ); i+=10;
 
-    setbitu_(buff,i,12,4054   ); i+=12; /* message type */
-    setbitu_(buff,i, 2,1      ); i+= 2; /* version */
+    setbitu_(buff,i,12,4049   ); i+=12; /* message type */
+    setbitu_(buff,i, 3,1      ); i+= 3; /* version */
     setbitu_(buff,i, 9,type   ); i+= 9; /* subtype */
     setbitu_(buff,i,20,tow    ); i+=20; /* time */
 	setbitu_(buff,i, 1,sync   ); i+=1;  /* sync */
@@ -644,8 +652,8 @@ extern int encode_aidX1(uint8_t* buff, aid_sat_t* sat, int n, double ws, int sys
 		setbitu_(buff,i, 6,0          ); i+= 6;
 		setbitu_(buff,i,10,0          ); i+=10;
 
-		setbitu_(buff,i,12,4054   ); i+=12; /* message type */
-		setbitu_(buff,i, 2,1      ); i+= 2; /* version */
+		setbitu_(buff,i,12,4049   ); i+=12; /* message type */
+		setbitu_(buff,i, 3,1      ); i+= 3; /* version */
 		setbitu_(buff,i, 9,type   ); i+= 9; /* subtype */
 		setbitu_(buff,i,20,tow    ); i+=20; /* time */
 		setbitu_(buff,i, 1,sync   ); i+= 1; /* sync */
@@ -714,8 +722,8 @@ extern int encode_aidX2(uint8_t* buff, aid_sat_t* sat, int n, double ws, int sys
 		setbitu_(buff,i, 6,0          ); i+= 6;
 		setbitu_(buff,i,10,0          ); i+=10;
 
-		setbitu_(buff,i,12,4054   ); i+=12; /* message type */
-		setbitu_(buff,i, 2,1      ); i+= 2; /* version */
+		setbitu_(buff,i,12,4049   ); i+=12; /* message type */
+		setbitu_(buff,i, 3,1      ); i+= 3; /* version */
 		setbitu_(buff,i, 9,type   ); i+= 9; /* subtype */
 		setbitu_(buff,i,20,tow    ); i+=20; /* time */
 		setbitu_(buff,i, 1,sync   ); i+= 1; /* sync */
@@ -792,8 +800,8 @@ extern int encode_aidX3(uint8_t* buff, aid_atm_t* atm, int n, double ws, int sys
 		setbitu_(buff,i, 6,0          ); i+= 6;
 		setbitu_(buff,i,10,0          ); i+=10;
 
-		setbitu_(buff,i,12,4054   ); i+=12; /* message type */
-		setbitu_(buff,i, 2,1      ); i+= 2; /* version */
+		setbitu_(buff,i,12,4049   ); i+=12; /* message type */
+		setbitu_(buff,i, 3,1      ); i+= 3; /* version */
 		setbitu_(buff,i, 9,type   ); i+= 9; /* subtype */
 		setbitu_(buff,i,20,tow    ); i+=20; /* time */
 		setbitu_(buff,i, 1,sync   ); i+= 1; /* sync */
@@ -867,8 +875,8 @@ extern int encode_aidX4(uint8_t* buff, aid_atm_t* atm, int n, double ws, int sys
 		setbitu_(buff,i, 6,0          ); i+= 6;
 		setbitu_(buff,i,10,0          ); i+=10;
 
-		setbitu_(buff,i,12,4054   ); i+=12; /* message type */
-		setbitu_(buff,i, 2,1      ); i+= 2; /* version */
+		setbitu_(buff,i,12,4049   ); i+=12; /* message type */
+		setbitu_(buff,i, 3,1      ); i+= 3; /* version */
 		setbitu_(buff,i, 9,type   ); i+= 9; /* subtype */
 		setbitu_(buff,i,20,tow    ); i+=20; /* time */
 		setbitu_(buff,i, 1,sync   ); i+= 1; /* sync */
@@ -925,7 +933,7 @@ extern int decode_aid1 (uint8_t* buff, int nlen, aid_sol_t *sol)
 	int nsat=0,solt=0;
 
     /*trace(3,"decode_aid 1:        subtype=%d rcv=%d sync=%d tow=%d\n",1,rcv,sync,tow);*/
-	if ((8+6+10+12+2+9+20+1+16+32+32+32+16+16+16+16+8+8)>(nlen*8)) return 0;
+	if ((8+6+10+12+3+9+20+1+16+32+32+32+16+16+16+16+8+8)>(nlen*8)) return 0;
 
     /* set preamble and reserved */
     i+= 8;
@@ -933,7 +941,7 @@ extern int decode_aid1 (uint8_t* buff, int nlen, aid_sol_t *sol)
     i+=10;
 
     type   = getbitu_(buff,i,12); i+=12; /* message type */
-    ver    = getbitu_(buff,i, 2); i+= 2; /* version */
+    ver    = getbitu_(buff,i, 3); i+= 3; /* version */
     subtype= getbitu_(buff,i, 9); i+= 9; /* subtype */
     tow    = getbitu_(buff,i,20); i+=20; /* time */
 	sync   = getbitu_(buff,i, 1); i+= 1; /* sync */
@@ -970,7 +978,7 @@ extern int decode_aid2 (uint8_t* buff, int nlen, aid_ppl_t *ppl)
     int pvar=0,hpl=0,vpl=0;
 
     /*trace(3,"decode_aid 2:        subtype=%d rcv=%d sync=%d tow=%d\n",2,rcv,sync,tow);*/
-	if ((8+6+10+12+2+9+20+1+16+16+16+16)>(nlen*8)) return 0;
+	if ((8+6+10+12+3+9+20+1+16+16+16+16)>(nlen*8)) return 0;
 
     /* set preamble and reserved */
     i+= 8;
@@ -978,7 +986,7 @@ extern int decode_aid2 (uint8_t* buff, int nlen, aid_ppl_t *ppl)
     i+=10;
 
     type   = getbitu_(buff,i,12); i+=12; /* message type */
-    ver    = getbitu_(buff,i, 2); i+= 2; /* version */
+    ver    = getbitu_(buff,i, 3); i+= 3; /* version */
     subtype= getbitu_(buff,i, 9); i+= 9; /* subtype */
     tow    = getbitu_(buff,i,20); i+=20; /* time */
 	sync   = getbitu_(buff,i, 1); i+=1;  /* sync */
@@ -1004,7 +1012,7 @@ extern int decode_aid5 (uint8_t* buff, int nlen, int*idx, int* rcv, double* ws, 
 	int nsat=0,solt=0;
 
     /*trace(3,"decode_aid 1:        subtype=%d rcv=%d sync=%d tow=%d\n",1,rcv,sync,tow);*/
-	if ((8+6+10+12+2+9+20+1+16+32+32+32)>(nlen*8)) return 0;
+	if ((8+6+10+12+3+9+20+1+16+32+32+32)>(nlen*8)) return 0;
 
     /* set preamble and reserved */
     i+= 8;
@@ -1012,7 +1020,7 @@ extern int decode_aid5 (uint8_t* buff, int nlen, int*idx, int* rcv, double* ws, 
     i+=10;
 
     type   = getbitu_(buff,i,12); i+=12; /* message type */
-    ver    = getbitu_(buff,i, 2); i+= 2; /* version */
+    ver    = getbitu_(buff,i, 3); i+= 3; /* version */
     subtype= getbitu_(buff,i, 9); i+= 9; /* subtype */
     tow    = getbitu_(buff,i,20); i+=20; /* time */
 	sync   = getbitu_(buff,i, 1); i+= 1;  /* sync */
@@ -1039,7 +1047,7 @@ extern int decode_aidX1(uint8_t* buff, int nlen, aid_sat_t* sat, int* n, int max
     int i=0,j=0,k=0,s=0,prn=0,tow=0,len=0,crc=0,type=0,ver=0,subtype=0;
 	int sat_ind[64]={0},nsat=0,iono=0,svi=0;
     
-	if ((8+6+10+12+3+8+20+1+6)>(nlen*8)) return 0;
+	if ((8+6+10+12+3+9+20+1+6)>(nlen*8)) return 0;
 
 	/* set preamble and reserved */
 	i+= 8;
@@ -1047,14 +1055,14 @@ extern int decode_aidX1(uint8_t* buff, int nlen, aid_sat_t* sat, int* n, int max
 	i+=10;
 
 	type   = getbitu_(buff,i,12); i+=12; /* message type */
-	ver    = getbitu_(buff,i, 2); i+= 2; /* version */
+	ver    = getbitu_(buff,i, 3); i+= 3; /* version */
 	subtype= getbitu_(buff,i, 9); i+= 9; /* subtype */
 	tow    = getbitu_(buff,i,20); i+=20; /* time */
 	*sync  = getbitu_(buff,i, 1); i+= 1; /* sync */
 
 	nsat   = getbitu_(buff,i, 6); i+= 6; /* no of satellites */
 
-	if ((8+6+10+12+2+9+20+1+6+nsat*(6+4))>(nlen*8)) return 0;
+	if ((8+6+10+12+3+9+20+1+6+nsat*(6+4))>(nlen*8)) return 0;
 
 	     if (subtype== 21) *sys = 0; /* GPS */
 	else if (subtype== 41) *sys = 1; /* GLO */
@@ -1088,14 +1096,14 @@ extern int decode_aidX2(uint8_t* buff, int nlen, aid_sat_t* sat, int* n, int max
 	int nsat=0,iono=0,trop=0,svh=0,svm=0,svi=0,svt=0;
 
 	/* set preamble and reserved */
-	if ((8+6+10+12+2+9+20+1+6)>(nlen*8)) return 0;
+	if ((8+6+10+12+3+9+20+1+6)>(nlen*8)) return 0;
 
 	i+= 8;
 	i+= 6;
 	i+=10;
 
 	type   = getbitu_(buff,i,12); i+=12; /* message type */
-	ver    = getbitu_(buff,i, 2); i+= 2; /* version */
+	ver    = getbitu_(buff,i, 3); i+= 3; /* version */
 	subtype= getbitu_(buff,i, 9); i+= 9; /* subtype */
 	tow    = getbitu_(buff,i,20); i+=20; /* time */
 	*sync  = getbitu_(buff,i, 1); i+= 1; /* sync */
@@ -1112,7 +1120,7 @@ extern int decode_aidX2(uint8_t* buff, int nlen, aid_sat_t* sat, int* n, int max
 	else if (subtype==102) *sys = 4; /* BDS */
 	else return 0;
 
-	if ((8+6+10+12+2+9+20+1+6+nsat*(6+1+1+1+1+4+4))>(nlen*8)) return 0;
+	if ((8+6+10+12+3+9+20+1+6+nsat*(6+1+1+1+1+4+4))>(nlen*8)) return 0;
 
     if ((*n)>0&&fabs(*ws-tow)>0.01) *n=0;
     *ws=tow;
@@ -1149,14 +1157,14 @@ extern int decode_aidX3(uint8_t* buff, int nlen, aid_atm_t* atm, int *n, int max
 	int sat_ind[64]={0},nsat=0,iono=0,trop=0,svh=0,svm=0,svi=0,svt=0,lat=0,lon=0,alt=0;
 
 	/* set preamble and reserved */
-	if ((8+6+10+12+2+9+20+1+6+16)>(nlen*8)) return 0;
+	if ((8+6+10+12+3+9+20+1+6+16)>(nlen*8)) return 0;
 
 	i+= 8;
 	i+= 6;
 	i+=10;
 
 	type   = getbitu_(buff,i,12); i+=12; /* message type */
-	ver    = getbitu_(buff,i, 2); i+= 2; /* version */
+	ver    = getbitu_(buff,i, 3); i+= 3; /* version */
 	subtype= getbitu_(buff,i, 9); i+= 9; /* subtype */
 	tow    = getbitu_(buff,i,20); i+=20; /* time */
 	*sync  = getbitu_(buff,i, 1); i+= 1; /* sync */
@@ -1175,7 +1183,7 @@ extern int decode_aidX3(uint8_t* buff, int nlen, aid_atm_t* atm, int *n, int max
          printf("%6i,%4i,%4i,%4i,%4i,%4i,%4i,%i\n", tow, nlen, type, subtype, *idx, *rcv, nsat, *sync);
 #endif
 
-	if ((8+6+10+12+2+9+20+1+6+16+nsat*(6+1+20))>(nlen*8)) return 0;
+	if ((8+6+10+12+3+9+20+1+6+16+nsat*(6+1+20))>(nlen*8)) return 0;
 
     if ((*n)>0&&fabs(*ws-tow)>0.01) *n=0;
     *ws=tow;
@@ -1210,14 +1218,14 @@ extern int decode_aidX4(uint8_t* buff, int nlen, aid_atm_t* atm, int *n, int max
 	int sat_ind[64]={0},nsat=0,iono=0,trop=0,svh=0,svm=0,svi=0,svt=0,lat=0,lon=0,alt=0;
 
 	/* set preamble and reserved */
-	if ((8+6+10+12+2+9+20+1+16+32+32+32+6)>(nlen*8)) return 0;
+	if ((8+6+10+12+3+9+20+1+16+32+32+32+6)>(nlen*8)) return 0;
 
 	i+= 8;
 	i+= 6;
 	i+=10;
 
 	type   = getbitu_(buff,i,12); i+=12; /* message type */
-	ver    = getbitu_(buff,i, 2); i+= 2; /* version */
+	ver    = getbitu_(buff,i, 3); i+= 3; /* version */
 	subtype= getbitu_(buff,i, 9); i+= 9; /* subtype */
 	tow    = getbitu_(buff,i,20); i+=20; /* time */
 	*sync  = getbitu_(buff,i, 1); i+= 1; /* sync */
@@ -1239,7 +1247,7 @@ extern int decode_aidX4(uint8_t* buff, int nlen, aid_atm_t* atm, int *n, int max
          printf("%6i,%4i,%4i,%4i,%4i,%4i,%4i,%i\n", tow, nlen, type, subtype, *idx, *rcv, nsat, *sync);
 #endif
 
-	if ((8+6+10+12+2+9+20+1+6+16+nsat*(6+1+1+1+1+20+20))>(nlen*8)) return 0;
+	if ((8+6+10+12+3+9+20+1+6+16+nsat*(6+1+1+1+1+20+20))>(nlen*8)) return 0;
 
     if ((*n)>0&&fabs(*ws-tow)>0.01) *n=0;
     *ws=tow;
